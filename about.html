@@ -1,0 +1,76 @@
+<html>
+<head>
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none';
+            child-src 'self';
+            connect-src 'self' https: wss:;
+            font-src 'self';
+            form-action 'self';
+            frame-src 'none';
+            img-src 'self' blob: data:;
+            media-src 'self' blob:;
+            object-src 'none';
+            script-src 'self';
+            style-src 'self' 'unsafe-inline';"
+  >
+  <link href="stylesheets/manifest.css" rel="stylesheet" type="text/css"/>
+  <style>
+    body {
+      text-align: center;
+      background-color: rgb(246, 246, 246);
+      color: rgb(88, 88, 88);
+      font-size: 14px;
+      -webkit-app-region: drag;
+      user-select: none;
+    }
+
+    img {
+      margin-top: 4em;
+      margin-bottom: 1em;
+      width: 110px;
+      height: 110px;
+    }
+
+    a {
+      color: #2090EA;
+    }
+
+    .app-name {
+      font-size: 32px;
+      padding: 0;
+      margin: 0;
+    }
+
+    .version {
+      margin: 1em;
+      font-size: 14px;
+      color: black;
+      user-select: text;
+      -webkit-app-region: no-drag;
+    }
+  </style>
+</head>
+<body>
+<div style="height: 100%; overflow: auto" class="about-body">
+  <img src='images/icon_128.png'>
+  <div class="app-name">Chative</div>
+  <div class='version'></div>
+  <div class='environment'></div>
+  <div>
+    <a href="https://chative.com">Download The Latest Version Of Chative</a>
+  </div>
+  <br>
+  <div style="display: none">
+    <a class="privacy" href="https://chative.com/legal.html">Terms &amp; Privacy Policy</a>
+  </div>
+  <div>
+    Copyright © 2021-2022 Chative. All rights reserved.
+  </div>
+  <div id="magic-box"/>
+</div>
+<script type='text/javascript' src='js/components.js'></script>
+<script type='text/javascript' src='js/views/react_wrapper_view.js'></script>
+<script type='text/javascript' src='node_modules/jquery/dist/jquery.js'></script>
+<script type='text/javascript' src='js/about_start.js'></script>
+</body>
+</html>

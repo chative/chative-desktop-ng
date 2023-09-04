@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none';
+            child-src 'self';
+            connect-src 'self' https: wss:;
+            font-src 'self';
+            form-action 'self';
+            frame-src 'none';
+            img-src 'self' blob: data:;
+            media-src 'self' blob:;
+            object-src 'none';
+            script-src 'self' 'unsafe-inline';
+            style-src 'self' 'unsafe-inline';"
+  >
+  <link href="../../../stylesheets/manifest.css" rel="stylesheet" type="text/css"/>
+  <style>
+    body {
+      background-color: rgba(0, 0, 0, 0)!important;
+    }
+  </style>
+  <title>Title</title>
+</head>
+<body>
+  <div class="down_action_menu_box" id="down_action_menu_box">
+    <div class="menu_item_title">Recently closed tab</div>
+  </div>
+</body>
+</html>
+<script>
+  const menuBox = document.getElementById('down_action_menu_box');
+  const params = (new URL(document.location)).searchParams;
+  const tabId = params.get('tabId');
+  let recentList;
+  try {
+    recentList = JSON.parse(params.get('recentList')) || [];
+  }catch (e) {
+    console.log(e);
+  }
+  if(recentList.length){
+    for (let i = 0; i < recentList.length; i++) {
+      const { url, title } = recentList[i] || {};
+      const e = document.createElement('div');
+      e.classList.add(['menu_item']);
+
+      const eText = document.createElement('div');
+      eText.classList.add(['menu_item_text']);
+      eText.innerHTML = title || url;
+
+      e.appendChild(eText);
+      e.addEventListener('click', () => {
+        window.GLOBAL_API.openRecentLink({ url, tabId });
+      });
+      menuBox.appendChild(e);
+    }
+  }else {
+    const e = document.createElement('div');
+    e.classList.add(['menu_item_title']);
+    e.style.fontSize = '14px';
+    e.innerHTML = 'None';
+    menuBox.appendChild(e);
+  }
+</script>
+<script type='text/javascript' src='../independent_event.js'></script>

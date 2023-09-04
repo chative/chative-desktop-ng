@@ -1,0 +1,132 @@
+.task-list-pane {
+  display: none;
+  user-select: none;
+  height: 100%;
+  overflow: hidden;
+
+  .task-list-pane-wrapper {
+    height: 100%;
+
+    .left {
+      height: 100%;
+      width: 300px;
+      float: left;
+      background-color: #f7f7f7;
+
+      h2 {
+        margin: 0;
+        padding: 20px 15px 10px 15px;
+        font-weight: normal;
+        -webkit-app-region: drag;
+      }
+
+      .item {
+        height: 40px;
+        margin: 5px;
+        border-radius: 5px;
+        padding: 0 10px;
+        cursor: pointer;
+        background-color: #f7f7f7;
+
+        .ongoing-icon {
+          @include color-svg(
+            '../images/task-list-ongoing.svg',
+            rgb(50, 113, 255)
+          );
+          height: 16px;
+          width: 16px;
+          vertical-align: middle;
+          display: inline-block;
+        }
+
+        .received-icon {
+          @include color-svg(
+            '../images/task-list-received.svg',
+            rgb(99, 37, 208)
+          );
+          height: 16px;
+          width: 16px;
+          vertical-align: middle;
+          display: inline-block;
+        }
+
+        .assigned-icon {
+          @include color-svg(
+            '../images/task-list-assigned.svg',
+            rgb(50, 162, 37)
+          );
+          height: 16px;
+          width: 16px;
+          vertical-align: middle;
+          display: inline-block;
+        }
+
+        .completed-icon {
+          @include color-svg(
+            '../images/task-list-completed.svg',
+            rgb(43, 47, 54)
+          );
+          height: 16px;
+          width: 16px;
+          vertical-align: middle;
+          display: inline-block;
+        }
+
+        &:hover {
+          background-color: rgb(237, 238, 238);
+        }
+      }
+
+      .item-selected {
+        color: rgb(50, 113, 255);
+        background-color: rgb(239, 244, 255);
+        &:hover {
+          background-color: rgb(239, 244, 255);
+        }
+      }
+    }
+
+    .right {
+      height: 100%;
+      width: calc(100% - 300px);
+      float: left;
+      background-color: rgb(240, 241, 242);
+
+      .title {
+        height: 50px;
+        -webkit-app-region: drag;
+
+        .sort-icon {
+          @include color-svg('../images/task-list-sort.svg', rgb(43, 47, 54));
+          height: 16px;
+          width: 16px;
+          vertical-align: middle;
+          display: inline-block;
+          cursor: pointer;
+        }
+      }
+
+      .no-tasks {
+        text-align: center;
+        margin-top: 120px;
+        font-size: 18px;
+        color: #777777;
+      }
+
+      .card-list {
+        padding: 5px 20px 15px 20px;
+        height: calc(100% - 50px);
+        overflow: auto;
+      }
+
+      // right scrollbar style
+      ::-webkit-scrollbar-track {
+        background: rgb(240, 241, 242);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        border: 2px solid rgb(240, 241, 242);
+      }
+    }
+  }
+}

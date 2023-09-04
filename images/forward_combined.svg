@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50">
+  <defs>
+    <style>
+      .cls-1, .cls-2 {
+        fill: none;
+      }
+
+      .cls-2 {
+        stroke: #fff;
+        stroke-linecap: round;
+        stroke-width: 1.2px;
+      }
+
+      .cls-3 {
+        fill: #fff;
+      }
+    </style>
+  </defs>
+  <g id="多条转发" transform="translate(-71.634 1.543)">
+    <path id="路径_956" data-name="路径 956" class="cls-1" d="M25,0A25,25,0,1,1,0,25,25,25,0,0,1,25,0Z" transform="translate(71.634 -1.543)"/>
+    <g id="组_151" data-name="组 151" transform="translate(1 -1)">
+      <line id="直线_35" data-name="直线 35" class="cls-2" x2="7.645" transform="translate(87.134 17.18)"/>
+      <line id="直线_36" data-name="直线 36" class="cls-2" x2="7.645" transform="translate(87.134 24.355)"/>
+      <line id="直线_37" data-name="直线 37" class="cls-2" x2="18.349" transform="translate(87.134 32.529)"/>
+      <path id="路径_954" data-name="路径 954" class="cls-3" d="M95.755,30.394l.049.044,1.946,1.946a.688.688,0,0,1,.045.924l-.045.049L95.8,35.3a.688.688,0,0,1-1.018-.924l.044-.049.772-.772H93.941a2.982,2.982,0,0,0-2.98,2.875l0,.107v2.752a.688.688,0,0,1-1.373.066l0-.066V36.541a4.358,4.358,0,0,1,4.234-4.356l.124,0H95.6l-.772-.772a.688.688,0,0,1-.044-.924l.044-.049a.688.688,0,0,1,.924-.045Z" transform="translate(8.106 -13.701)"/>
+    </g>
+  </g>
+</svg>

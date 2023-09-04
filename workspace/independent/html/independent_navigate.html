@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none';
+            child-src 'self';
+            connect-src 'self' https: wss:;
+            font-src 'self';
+            form-action 'self';
+            frame-src 'none';
+            img-src 'self' blob: data:;
+            media-src 'self' blob:;
+            object-src 'none';
+            script-src 'self' 'unsafe-inline';
+            style-src 'self' 'unsafe-inline';"
+  >
+  <link href="../../../stylesheets/manifest.css" rel="stylesheet" type="text/css"/>
+  <title>App</title>
+  <style>
+    html {
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <div class="independent_navigate dragable" ondblclick="window.GLOBAL_API.maximizedWindow()">
+    <div class="left_control">
+      <button id="goBack" class="goBack" onclick="window.GLOBAL_API.navigateControl({ action: 'goBack', tabId: currentTabId })"></button>
+      <button id="goForward" class="goForward" onclick="window.GLOBAL_API.navigateControl({ action: 'goForward', tabId: currentTabId })"></button>
+      <button id="reload" class="reload" onclick="window.GLOBAL_API.navigateControl({ action: 'reload', tabId: currentTabId })"></button>
+    </div>
+    <div class="tab_box" id="tab_box"></div>
+<!--    <div id="app_title" class="title"></div>-->
+    <div class="right_control" id="downAction">
+<!--      <button class="forward" onclick="window.GLOBAL_API.navigateControl('forward')"></button>-->
+<!--      <button class="copyLink" onclick="window.GLOBAL_API.navigateControl('copyLink')"></button>-->
+<!--      <button class="jumpOutside" onclick="window.GLOBAL_API.navigateControl('jumpOutside')"></button>-->
+      <div class="moreAction"></div>
+    </div>
+  </div>
+
+<!--  <div class="adapter_tab">-->
+<!--    <div class="left_control">-->
+<!--      <button id="goBack" class="goBack" onclick="window.GLOBAL_API.navigateControl('goBack')"></button>-->
+<!--      <button id="goForward" class="goForward" onclick="window.GLOBAL_API.navigateControl('goForward')"></button>-->
+<!--      <button class="reload" onclick="window.GLOBAL_API.navigateControl('reload')"></button>-->
+<!--    </div>-->
+<!--    <div class="tab_box" id="tab_box"></div>-->
+<!--  </div>-->
+
+  <div class="loading_box">
+    <span class="loading_span">
+      <i></i><i></i><i></i><i></i>
+    </span>
+  </div>
+</body>
+<script type='text/javascript' src='../independent_event.js'></script>
+<script>
+  // function moreAction(event){
+  //   // TODO
+  //   const { clientX, clientY } = event || {};
+  //   window.GLOBAL_API.showDownActionMenu({ tabId: currentTabId , clientX, clientY});
+  // }
+  // document.getElementById('moreAction').addEventListener('click', downAction);
+</script>
+</html>

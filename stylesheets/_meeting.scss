@@ -1,0 +1,419 @@
+.microphone-popover {
+  .ant-popover-content {
+    .ant-popover-arrow {
+      .ant-popover-arrow-content::before {
+        background-color: $app-color-background-2-dark;
+      }
+    }
+
+    .ant-popover-inner {
+      border-radius: 4px;
+      background-color: $app-color-background-2-dark;
+
+      .ant-popover-inner-content {
+        padding: 0;
+        color: $app-color-text-primary-dark;
+
+        .text-message-preset {
+          border-radius: 4px;
+          text-align: left;
+
+          .text-message-preset-cell {
+            padding: 0 15px;
+            display: block;
+            height: 36px;
+            line-height: 36px;
+            cursor: pointer;
+
+            &:hover {
+              background-color: $app-color-background-3-dark;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.meeting-stop-sharing-confirm {
+  .ant-popover-content {
+    width: 333px;
+    .ant-popover-arrow {
+      .ant-popover-arrow-content::before {
+        background-color: $app-color-background-2-dark;
+      }
+    }
+
+    .ant-popover-inner {
+      border-radius: 4px;
+      background-color: $app-color-background-2-dark;
+
+      .ant-popover-inner-content {
+        .ant-popover-message {
+          color: $app-color-text-primary-dark;
+        }
+        .ant-popover-buttons {
+          .ant-btn-default {
+            background: transparent;
+            color: white;
+            border: 1px solid $app-color-line-dark;
+          }
+        }
+      }
+    }
+  }
+}
+
+.select-window-modal {
+  .ant-modal-content {
+    border-radius: 10px;
+
+    .ant-modal-close {
+      padding-top: 5px;
+      color: $app-color-text-primary-dark;
+    }
+
+    .ant-modal-header {
+      border-radius: 8px 8px 0 0;
+      padding: 20px 24px 8px 24px;
+      border: none;
+      background-color: $app-color-background-3-dark;
+
+      .ant-modal-title {
+        color: $app-color-text-primary-dark;
+      }
+    }
+
+    .ant-modal-body {
+      padding: 0 10px 0 10px !important;
+    }
+
+    .ant-modal-footer {
+      border-radius: 0 0 8px 8px;
+      border: none;
+      background-color: $app-color-background-3-dark;
+      // hide cancel button (- -)!, any other better trick???
+      .ant-btn-default {
+        display: none;
+      }
+    }
+  }
+}
+
+.before-join-meeting-modal {
+  .ant-modal-content {
+    border-radius: 10px;
+    .ant-modal-body {
+      padding: 0 10px 0 10px !important;
+    }
+  }
+
+  .before-join-meeting-root {
+    padding: 20px 10px;
+    text-align: center;
+
+    .title {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 16px;
+      color: $app-color-text-primary-light;
+      margin-top: 15px;
+      margin-bottom: 4px;
+    }
+
+    .body-text {
+      color: $app-color-text-secondary-light;
+    }
+
+    .avatar-container {
+      display: flex;
+      justify-content: center;
+      margin: 32px 0;
+
+      .only-for-before-join-meeting {
+        width: 30px;
+      }
+    }
+
+    .foot {
+      margin-top: 30px;
+      display: flex;
+      justify-content: center;
+
+      button {
+        margin: 0 5px;
+        border-radius: 8px;
+        width: 164px;
+        height: 40px;
+      }
+
+      .btnGhostBorder {
+        color: $app-color-text-primary-light;
+        border: 1px solid $app-color-line-light;
+        &:hover {
+          color: #40a9ff;
+          border: 1px solid #40a9ff;
+        }
+      }
+    }
+
+    .avatarPlus {
+      font-size: 12px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background-color: $app-color-line-light;
+      color: $app-color-text-primary-light;
+      z-index: 1;
+
+      display: flex;
+      justify-content: center;
+      line-height: 36px;
+    }
+  }
+}
+
+.select-screen-window-container {
+  -webkit-app-region: no-drag;
+  overflow: auto;
+
+  &::-webkit-scrollbar-track {
+    background: #00000000;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $color-light-35;
+    border: 2px solid $app-color-background-modal-dark;
+    border-radius: 4px;
+    min-height: 48px;
+
+    &:hover {
+      background: $color-light-45;
+    }
+  }
+}
+
+.meeting-root {
+  user-select: none;
+  color: #eaecef;
+  background: $app-color-background-1-dark;
+  -webkit-app-region: drag;
+  height: 100%;
+  position: relative;
+  text-align: center;
+
+  .init-div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+
+    p {
+      padding: 15px;
+    }
+  }
+
+  .is-speaking {
+    border-color: #68c136 !important;
+    .call-microphone-on {
+      width: 20px;
+      height: 20px;
+      &:before {
+        -webkit-mask: url(../images/mic-speaking.gif) no-repeat center !important;
+        background-color: #01bc6a !important;
+        -webkit-mask-size: 100% !important;
+        width: 16px;
+        height: 16px;
+      }
+    }
+
+    .call-microphone-disable-btn {
+      background: url('../images/microphone-speaking.gif') no-repeat center;
+      background-size: cover;
+      &:hover {
+        background: url('../images/microphone-speaking-hover.gif') no-repeat
+          center;
+        background-size: cover;
+      }
+    }
+  }
+
+  .title {
+    padding: 6px 0;
+    margin: 0;
+    font-size: 16px;
+    height: 30px;
+  }
+
+  .caption-list {
+    max-height: 64px;
+    width: 720px !important;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    position: absolute;
+    background-color: transparent;
+    overflow-y: scroll;
+    padding: 0;
+
+    p {
+      text-align: start;
+      font-family: Tahoma, Geneva, sans-serif;
+      font-size: 20px;
+      line-height: 32px;
+      letter-spacing: 0.06em;
+      margin: 0;
+    }
+
+    .highlight {
+      display: inline;
+      padding: 2px 4px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #eaecef;
+      user-select: text;
+    }
+
+    .caption-list-user {
+      color: #4da0ff;
+      font-weight: bold;
+    }
+  }
+
+  .caption-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .footer {
+    padding: 10px;
+    position: absolute;
+    bottom: 1px;
+    height: 68px;
+    width: 100%;
+    background: $app-color-background-1-dark;
+    box-shadow: 0px 2px 0px $app-color-background-1-dark;
+  }
+
+  .private-my-video {
+    width: 320px;
+    height: 180px;
+    background-color: black;
+    top: 32px;
+    right: 0;
+    position: absolute;
+    z-index: 2;
+  }
+
+  .group-video {
+    width: 100%;
+    height: 100%;
+  }
+
+  .private-peer-video {
+    width: 100%;
+    height: calc(100% - 100px);
+    background-color: black;
+    top: 32px;
+    position: absolute;
+  }
+
+  .screen-share-container {
+    width: 100%;
+    height: calc(100% - 32px);
+    background-color: black;
+    top: 32px;
+    position: absolute;
+  }
+
+  .private-middle {
+    padding-top: 100px;
+    height: calc(100% - 100px);
+  }
+
+  .group-middle {
+    overflow-y: auto;
+    height: calc(100% - 100px);
+    padding: 0 10px;
+
+    &::-webkit-scrollbar-track {
+      background: $app-color-background-1-dark;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #a4a6a9;
+      border: 2px solid $app-color-background-1-dark;
+      min-height: 48px;
+      border-radius: 8px;
+    }
+
+    .member {
+      background: $app-color-background-2-dark;
+      width: 160px;
+      height: 160px;
+      border-radius: 5px;
+      border: 2px transparent solid;
+      float: left;
+      margin: 12px 6px;
+      position: relative;
+      overflow: hidden;
+
+      .call-microphone-on {
+        height: 18px;
+        width: 18px;
+        padding: 2px;
+        left: 4px;
+        bottom: 6px;
+        position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+
+        &:before {
+          content: '';
+          display: inline-block;
+          height: 14px;
+          width: 14px;
+          @include color-svg('../images/mic-on2.svg', #01bc6a);
+        }
+      }
+
+      .call-microphone-mute {
+        height: 18px;
+        width: 18px;
+        padding: 2px;
+        left: 4px;
+        bottom: 6px;
+        position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+
+        &:before {
+          content: '';
+          display: inline-block;
+          height: 14px;
+          width: 14px;
+          @include color-svg('../images/mic-mute.svg', white);
+        }
+      }
+
+      p {
+        font-weight: normal;
+        margin: 0 0 5px 5px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 146px;
+        white-space: nowrap;
+        position: absolute;
+        bottom: 0;
+        text-align: left;
+        font-size: 10px;
+        color: white;
+        background: #00000080;
+        border-radius: 4px;
+        line-height: 22px;
+        padding: 0 10px 0 18px;
+        cursor: pointer;
+      }
+    }
+  }
+}

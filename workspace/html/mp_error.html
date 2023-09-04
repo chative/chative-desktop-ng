@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none';
+            child-src 'self';
+            connect-src 'self' https: wss:;
+            font-src 'self';
+            form-action 'self';
+            frame-src 'none';
+            img-src 'self' blob: data:;
+            media-src 'self' blob:;
+            object-src 'none';
+            script-src 'self' 'unsafe-inline';
+            style-src 'self' 'unsafe-inline';"
+  >
+  <link href="../../stylesheets/manifest.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<div class="error-view-box" id="bv-error-view-box">
+  <div id="mp_error">
+    <div class="logo-box">
+      <img class="logo"
+           src="../../images/webview-error.svg"
+      />
+    </div>
+    <p class="title" id="title">Oops,something went wrong</p>
+    <p class="paragraph" id="paragraph">This app can't be reached(Code: Unknown)</p>
+    <button class="btn-try" id="btn-try" onclick="tryAgain()">Try again</button>
+    <button class="btn-contact" id="btn-contact" onclick="contactDeveloper()">Contact Admin</button>
+  </div>
+
+  <div class="loading_box" id="mp_error_loading" style="display: none">
+    <span class="loading_span">
+      <i></i><i></i><i></i><i></i>
+    </span>
+  </div>
+</div>
+</body>
+</html>
+<script>
+  const params = (new URL(document.location)).searchParams;
+  const supportBot = params.get('supportBot');
+  const errorType = params.get('errorType');
+  const errorCode = params.get('errorCode');
+  const browserType = params.get('browserType');
+  const tabId = params.get('tabId');
+  const title = document.getElementById('title');
+  const paragraph = document.getElementById('paragraph');
+  const btnContact = document.getElementById('btn-contact');
+  const box = document.getElementById('bv-error-view-box');
+
+  // independent, side, halfview, fullview
+  if (browserType === 'halfview' || browserType === 'side'){
+    document.body.style.height = 'calc(100% - 48px)'
+    title.style.lineHeight = '24px'
+    title.style.fontSize = '16px'
+  }else {
+    document.body.style.height = '100%'
+    title.style.lineHeight = '28px'
+    title.style.fontSize = '20px'
+  }
+
+  if (title && paragraph){
+    if (errorType === 'network'){
+      paragraph.innerHTML = `Network error(NetworkErrorCode: ${errorCode})`
+    }else if(errorType === 'http'){
+      paragraph.innerHTML = `This app can't be reached(httpCode: ${errorCode})`
+    }else if(errorType === 'device'){
+      paragraph.innerHTML = "The current device cannot open the app"
+    } else {
+      paragraph.innerHTML = "This app can't be reached(httpCode: Unknown)"
+    }
+  }
+  if ((!supportBot || supportBot.length === 0) && btnContact) {
+    btnContact.style.display = 'none';
+  }
+
+  function tryAgain() {
+    document.getElementById("mp_error").style.display = 'none';
+    document.getElementById("mp_error_loading").style.display = 'block';
+    window.GLOBAL_API.tryAgain({
+      browserType, tabId
+    })
+  }
+
+  function contactDeveloper(){
+    window.GLOBAL_API.contactDeveloper(supportBot)
+  }
+
+</script>
+<style>
+  * {
+    font-family: 'PingFang SC';
+  }
+  body {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    overflow: hidden;
+    background: rgb(247,247,247);
+  }
+  .error-view-box {
+    height: 300px;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto auto;
+    text-align: center;
+    position: absolute;
+  }
+  .logo-box {
+    margin-bottom: 10px;
+    height: 120px;
+  }
+  .logo {
+    height: 120px;
+    width: 120px;
+  }
+  .title {
+    font-style: normal;
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 28px;
+    text-align: center;
+    color: #1E2329;
+    margin-bottom: 8px;
+    margin-top: 0;
+  }
+  .paragraph {
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 20px;
+    text-align: center;
+    color: #474D57;
+    margin: 0;
+    margin-bottom: 24px;
+  }
+  .btn-try {
+    background-color: white;
+    cursor: pointer;
+    height: 40px;
+    border: 2px solid rgb(234,236,239);
+    outline: none;
+    margin: 0 5px;
+    border-radius: 8px;
+    padding: 8px 16px;
+  }
+  .btn-try:hover {
+    background: #fbfbfb;
+  }
+  .btn-contact {
+    background-color: #328AFD;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    height: 40px;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    padding: 8px 16px;
+    margin: 0 5px;
+  }
+  .btn-contact:hover {
+    opacity: 0.88;
+  }
+</style>

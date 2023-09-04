@@ -1,0 +1,130 @@
+.task-message-block {
+  width: 280px;
+  border: 1px solid $app-color-line-light;
+  border-radius: 8px;
+  margin-top: 5px;
+  // padding: 5px 10px;
+  background-color: white;
+  // color: $color-gray-90;
+
+  .task-message-title {
+    font-size: 12px;
+    height: 36px;
+    margin-bottom: 5px;
+    border-bottom: 1px solid $app-color-line-light;
+    display: flex;
+    line-height: 36px;
+    color: $app-color-text-secondary-light;
+
+    .task-icon {
+      @include color-svg(
+        '../images/task-title.svg',
+        $app-color-text-secondary-light
+      );
+      // height: 16px;
+      width: 16px;
+      display: inline-block;
+      margin: 0 4px 0 10px;
+    }
+  }
+
+  .task-message-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    word-break: break-word;
+    position: relative;
+    padding-right: 25px;
+    line-height: 20px;
+
+    .priority0 {
+      @include color-svg('../images/set-priority.svg', #c63743);
+      -webkit-mask-size: 78%;
+      height: 16px;
+      width: 16px;
+      vertical-align: middle;
+      display: inline-block;
+    }
+
+    .priority1 {
+      @include color-svg('../images/set-priority.svg', #f6c84a);
+      -webkit-mask-size: 78%;
+      height: 16px;
+      width: 16px;
+      vertical-align: middle;
+      display: inline-block;
+    }
+
+    .priority2 {
+      @include color-svg('../images/set-priority.svg', #119f6d);
+      -webkit-mask-size: 78%;
+      height: 16px;
+      width: 16px;
+      vertical-align: middle;
+      display: inline-block;
+    }
+
+    .remove {
+      @include color-svg('../images/task-list-remove.svg', #808080);
+      -webkit-mask-size: 78%;
+      height: 16px;
+      width: 16px;
+      vertical-align: middle;
+      display: inline-block;
+    }
+  }
+
+  .task-message__button-view-details {
+    width: 100%;
+  }
+
+  .assignee-container {
+    display: inline-block;
+    padding: 5px;
+    border-radius: 5px;
+    background-color: #f1f1f1;
+  }
+
+  .assignee-icon {
+    @include color-svg('../images/add-assignee.svg', $color-gray-60);
+    -webkit-mask-size: 78%;
+    height: 20px;
+    width: 20px;
+    margin-right: 5px;
+    vertical-align: middle;
+    display: inline-block;
+  }
+
+  .calendar-icon {
+    @include color-svg('../images/add-duetime.svg', $color-gray-60);
+    -webkit-mask-size: 78%;
+    height: 20px;
+    width: 20px;
+    margin-right: 5px;
+    vertical-align: middle;
+    display: inline-block;
+  }
+
+  button {
+    font-size: 13px;
+    padding: 0 15px;
+    border-radius: 4px;
+    border: 1px solid $app-color-line-light;
+    margin: 8px 0;
+    height: 32px;
+    background-color: white;
+    outline: none;
+
+    &:hover {
+      background-color: $app-color-background-2-light;
+    }
+  }
+
+  // .button-no-hover {
+  //   &:hover {
+  //     background-color: white;
+  //   }
+  // }
+}
