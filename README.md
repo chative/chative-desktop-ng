@@ -2,7 +2,7 @@
 
 Chative Desktop is an Electron application that links with Chative mobile app.
 
-Supports macOS and Ubuntu.
+Support macOS and Ubuntu.
 
 ## Install
 
