@@ -34,6 +34,9 @@
   "greyFile": {
     "message": "Not sure if this file is safe. Are you sure to download?"
   },
+  "ublockFriendMessage": {
+    "message": "Are you sure you want to do this?"
+  },
   "redFile": {
     "message": "This file is confirmed to be a malicious file. We have blocked the access."
   },
@@ -910,6 +913,10 @@
   "error": {
     "message": "Error"
   },
+  "meetingVersionLowWarning": {
+    "message": "Their device doesn't support the security features of this meeting. Please invite them to a group and restart the meeting in the group to make it compatible. This issue will be solved soon."
+  },
+
   "messageDetail": {
     "message": "Message Detail"
   },
@@ -1020,6 +1027,9 @@
   "removeFromTop": {
     "message": "Unstick",
     "description": "Menu item for deleting messages, title case."
+  },
+  "blockAndReport": {
+    "message": "Block & Report"
   },
   "block": {
     "message": "Block"
@@ -1140,6 +1150,15 @@
     "message": "Link New Device",
     "description": "The menu option shown in Chative iOS to add a new linked device"
   },
+  "linkDeviceStep1": {
+    "message": "Open Chative on you phone"
+  },
+  "linkDeviceStep2": {
+    "message": "Tap the \"+\" button on top right"
+  },
+  "linkDeviceStep3": {
+    "message": "Tap \"Scan\" to scan the QR code"
+  },
   "deviceName": {
     "message": "Device name",
     "description": "The label in settings panel shown for the user-provided name for this desktop instance"
@@ -1185,6 +1204,12 @@
   "general": {
     "message": "General",
     "description": "Header for general options on the settings screen"
+  },
+  "language": {
+    "message": "Language"
+  },
+  "restartToApplyChange": {
+    "message": "The change will take effect after you restart the app"
   },
   "spellCheckDescription": {
     "message": "Enable spell check of text entered in message composition box",
@@ -1284,7 +1309,10 @@
   "blocked": {
     "message": "Blocked"
   },
-  "unBlocked": {
+  "unblock": {
+    "message": "Unblock"
+  },
+  "unblocked": {
     "message": "Unblocked"
   },
   "unSpeak": {
@@ -1391,8 +1419,8 @@
     "description": "Timestamp format string for displaying month and day (but not the year) of a date within the current year, ex: use 'MMM D' for 'Aug 8', or 'D MMM' for '8 Aug'."
   },
   "messageBodyTooLong": {
-    "message": "Message body is too long.",
-    "description": "Shown if the user tries to send more than 64kb of text"
+    "message": "Exceeding 4096 character limit",
+    "description": "Shown if the user tries to send more than 4kb of text"
   },
   "blockBotToSend": {
     "message": "\uD83D\uDEABYou have blocked private messages from this bot, please change it in the session settings."
@@ -1869,6 +1897,18 @@
   },
   "call_voice_initializing": {
     "message": "Initializing..."
+  },
+  "joined_at": {
+    "message": "Joined"
+  },
+  "how_you_met": {
+    "message": "How you met"
+  },
+  "common_groups": {
+    "message": "groups"
+  },
+  "uid_name": {
+    "message": "UID"
   },
   "group_call_voice_join_group": {
     "message": "Join voice group"
@@ -3223,7 +3263,7 @@
     "message": "do not archive"
   },
   "groupMessageExpiryUpdated": {
-    "message": "Group message archive time is set to $days$"
+    "message": "The following messages will disappear within $days$ days after being read"
   },
   "messageExpiryUpdated": {
     "message": "The following messages will disappear after $days$ after being read."
@@ -3490,5 +3530,32 @@
   },
   "groupCountTitle2": {
     "message": "$count$ Groups"
+  },
+  "restartRequired": {
+    "message": "Restart Required"
+  },
+  "later": {
+    "message": "LATER"
+  },
+  "restart": {
+    "message": "RESTART"
+  },
+  "languageRestartToApplyChange": {
+    "message": "The language change will take effect after you restart the app"
+  },
+  "joinMeetingNoSecretKey": {
+    "message": "You don't have the encryption key for the call. Please ask others who are in the meeting to invite you to the call."
+  },
+  "reminderBy": {
+    "message": "Reminder by"
+  },
+  "createdReminder": {
+    "message": "created a reminder"
+  },
+  "changedReminder": {
+    "message": "changed a reminder"
+  },
+  "deletedReminder": {
+    "message": "deleted a reminder"
   }
 }

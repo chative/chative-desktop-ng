@@ -7,6 +7,8 @@ type Props = {
   content?: string | undefined | any;
   onCopied: () => void;
   isShowCopy: boolean;
+  isShowArrowimg?: boolean;
+  onClickArrowimg?: (event: any) => void;
   isRole: boolean;
   isShowTip: boolean;
   onClick?: (event: any) => void;
@@ -32,6 +34,12 @@ const ProfileItem = (props: Props) => {
     }
   };
 
+  const renderArrowimg = () => {
+    if (props.isShowArrowimg) {
+      return <div className="setting-item-arrow-img" style={{ top: '0px' }} />;
+    }
+    return null;
+  };
   const renderCopyButton = () => {
     if (showCopy) {
       return (
@@ -76,12 +84,12 @@ const ProfileItem = (props: Props) => {
       className={'profile-item'}
       onMouseOver={mouseOver}
       onMouseLeave={mouseLeave}
-      style={{ margin: '0 0 12px 24px', height: '20px' }}
+      style={{ margin: '0 0 12px 24px', height: 'auto' }}
     >
       <div
         className={'profile-item-title'}
         style={{
-          width: '48px',
+          width: '60px',
           height: '20px',
           marginRight: '8px',
           display: 'inline-block',
@@ -100,11 +108,13 @@ const ProfileItem = (props: Props) => {
         className={'profile-item-sub'}
         style={{
           width: '176px',
+          cursor: 'pointer',
           // display:'inline-block',
-          whiteSpace: 'nowrap',
-          textOverflow: 'ellipsis',
-          overflow: 'hidden',
+          // whiteSpace: 'nowrap',
+          // textOverflow: 'ellipsis',
+          // overflow: 'hidden',
         }}
+        onClick={props.onClickArrowimg}
       >
         {isRole && !props.onClick ? (
           <Tooltip
@@ -147,7 +157,9 @@ const ProfileItem = (props: Props) => {
             {content}
           </div>
         ) : null}
+        {renderArrowimg()}
       </div>
+
       {renderCopyButton()}
     </div>
   );

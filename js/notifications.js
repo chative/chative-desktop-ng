@@ -57,8 +57,12 @@
 
       const { isEnabled } = this;
       const isAppFocused = isFocused();
+      // const isAudioNotificationEnabled =
+      //   storage.get('audio-notification') || false;
       const isAudioNotificationEnabled =
-        storage.get('audio-notification') || false;
+        typeof storage.get('audio-notification') == 'undefined'
+          ? true
+          : storage.get('audio-notification');
       const isAudioNotificationSupported =
         Settings.isAudioNotificationSupported();
       const isNotificationGroupingSupported =
@@ -170,12 +174,23 @@
       // }
 
       drawAttention();
-
       this.lastNotification = new Notification(title, {
         body: window.platform === 'linux' ? filter(message) : message,
         icon: iconUrl,
-        silent: !status.shouldPlayNotificationSound,
+        //silent: !status.shouldPlayNotificationSound,
+        silent: true,
       });
+
+      if (status.shouldPlayNotificationSound) {
+        //播放声音
+        let notificationAudio = new Sound({
+          loop: false,
+          src: 'audio/Notifiction.mp3',
+        });
+        notificationAudio.play();
+        notificationAudio = null;
+      }
+
       this.lastNotification.onclick = () =>
         this.trigger('click', last.conversationId, last.id);
 

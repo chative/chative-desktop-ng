@@ -829,8 +829,8 @@ OutgoingMessage.prototype = {
     const plaintextBuffer = plaintext.buffer;
     const store = textsecure.storage.protocol;
     const myIdentifyKeyPair = await store.getIdentityKeyPair();
-    // 组装群组人员id-> idkeyy
-    const allMemberSessions = {};
+    // 组装群组人员id -> identityKey
+    const allMemberRegistrationIds = {};
     const pubIdKeys = {};
     const shouldRequestKeys = [];
     for (let i = 0; i < this.numbers.length; i += 1) {
@@ -838,13 +838,12 @@ OutgoingMessage.prototype = {
       const userSession = await window.Signal.Data.getSessionV2ById(num);
       if (
         userSession?.uid &&
-        userSession?.msgEncVersion &&
         userSession?.identityKey &&
         userSession?.registrationId
       ) {
         // found in local database
         pubIdKeys[num] = this.identityKeyToArrayBuffer(userSession.identityKey);
-        allMemberSessions[num] = userSession?.registrationId;
+        allMemberRegistrationIds[num] = userSession?.registrationId;
       } else {
         shouldRequestKeys.push(num);
       }
@@ -856,7 +855,7 @@ OutgoingMessage.prototype = {
         for (let i = 0; i < keys.length; i += 1) {
           const key = keys[i];
           pubIdKeys[key.uid] = this.identityKeyToArrayBuffer(key.identityKey);
-          allMemberSessions[key.uid] = key.registrationId;
+          allMemberRegistrationIds[key.uid] = key.registrationId;
           await window.Signal.Data.createOrUpdateSessionV2({
             ...key,
           });
@@ -877,7 +876,7 @@ OutgoingMessage.prototype = {
     Object.keys(pubIdKeys).forEach(function (k) {
       recipients.push({
         uid: k,
-        registrationId: allMemberSessions[k],
+        registrationId: allMemberRegistrationIds[k],
         peerContext: window.Signal.Crypto.arrayBufferToBase64(
           encResult.erm_keys[k]
         ),
@@ -943,7 +942,95 @@ OutgoingMessage.prototype = {
         this.timestamp,
         this.silent
       )
-      .then(response => {
+      .then(async response => {
+        // 失败降级处理11002，客户端认为成功并记录日志，server会发送通道加密消息；
+        if (response.status === 11002) {
+          console.log('sendMessageV3ToGroup status === 11002.');
+        }
+
+        // 出错了，需要处理
+        if (response.status === 11001) {
+          console.log('sendMessageV3ToGroup status === 11001.');
+          // 少人了
+          if (response?.data?.missing) {
+            console.log('sendMessageV3ToGroup status === 11001. with missing.');
+            if (Array.isArray(response?.data?.missing)) {
+              for (let i = 0; i < response?.data?.missing.length; i += 1) {
+                const key = response?.data?.missing[i];
+                this.numbers.push(key.uid);
+                await window.Signal.Data.createOrUpdateSessionV2({
+                  ...key,
+                });
+              }
+              // 更新群信息
+              const expiredSessionUser = ConversationController.get(
+                this.extension?.conversationId
+              );
+              if (expiredSessionUser) {
+                expiredSessionUser.apiLoadGroupV2();
+              }
+              console.log(
+                'sendMessageV3ToGroup status === 11001. with missing try again.'
+              );
+              return this.sendToGroup();
+            } else {
+              console.log(
+                'sendMessageV3ToGroup status === 11001. bad missing data.'
+              );
+              this.registerError(
+                this.extension?.conversationId,
+                'sendMessageV3ToGroup status === 11001. bad missing data.'
+              );
+            }
+            return;
+          }
+
+          // 有的人session已过期了
+          else if (response?.data?.stale) {
+            console.log('sendMessageV3ToGroup status === 11001. with stale.');
+            if (Array.isArray(response?.data?.stale)) {
+              for (let i = 0; i < response?.data?.stale.length; i += 1) {
+                const key = response?.data?.stale[i];
+                await window.Signal.Data.createOrUpdateSessionV2({
+                  ...key,
+                });
+
+                // 更新此人session
+                const expiredSessionUser = ConversationController.get(key.uid);
+                if (expiredSessionUser) {
+                  expiredSessionUser.forceUpdateSessionV2(key);
+                }
+              }
+              console.log(
+                'sendMessageV3ToGroup status === 11001. with stale try again.'
+              );
+              return this.sendToGroup();
+            } else {
+              console.log(
+                'sendMessageV3ToGroup status === 11001. bad stale data.'
+              );
+              this.registerError(
+                this.extension?.conversationId,
+                'sendMessageV3ToGroup status === 11001. bad stale data.'
+              );
+            }
+            return;
+          }
+
+          // 多人了，当作成功处理
+          else if (response?.data?.extra) {
+            console.log(
+              'sendMessageV3ToGroup status === 11001. with extra, success.'
+            );
+          } else {
+            this.registerError(
+              this.extension?.conversationId,
+              'Send message to group unknown 11001'
+            );
+            return;
+          }
+        }
+
         this.sequenceId = response?.sequenceId;
         this.serverTimestamp = response?.systemShowTimestamp;
         this.notifySequenceId = response?.notifySequenceId;
@@ -1093,19 +1180,16 @@ OutgoingMessage.prototype = {
     const { receiptMessage } = this.message;
     const notification = this.getNotificationForNumber();
 
-    let msgEncVersion = this.extension?.sessionV2?.msgEncVersion;
     let identityKey = this.extension?.sessionV2?.identityKey;
     let registrationId = this.extension?.sessionV2?.registrationId;
 
-    if (!msgEncVersion || !identityKey || !registrationId) {
+    if (!identityKey || !registrationId) {
       const userSession = await window.Signal.Data.getSessionV2ById(number);
       if (
         userSession?.uid &&
-        userSession?.msgEncVersion &&
         userSession?.identityKey &&
         userSession?.registrationId
       ) {
-        msgEncVersion = userSession?.msgEncVersion;
         identityKey = userSession?.identityKey;
         registrationId = userSession?.registrationId;
       } else {
@@ -1114,12 +1198,11 @@ OutgoingMessage.prototype = {
           const keys = await this.requestUsersIdkey([number]);
           if (Array.isArray(keys) && keys.length) {
             const session = keys[0];
-            if (session?.uid && session?.msgEncVersion) {
+            if (session?.uid && session?.identityKey) {
               // 保存 session
               await window.Signal.Data.createOrUpdateSessionV2({
                 ...session,
               });
-              msgEncVersion = session.msgEncVersion;
               identityKey = session.identityKey;
               registrationId = session.registrationId;
             }
@@ -1128,7 +1211,7 @@ OutgoingMessage.prototype = {
       }
     }
 
-    if (!msgEncVersion || !identityKey || !registrationId) {
+    if (!identityKey || !registrationId) {
       this.registerError(
         number,
         'Send message to number failed - request sessionV2.'
@@ -1226,7 +1309,47 @@ OutgoingMessage.prototype = {
 
     this.server
       .sendMessageV3ToNumber(number, jsonData, this.timestamp, this.silent)
-      .then(response => {
+      .then(async response => {
+        // 失败降级处理11002，客户端认为成功并记录日志，server会发送通道加密消息；
+        if (response.status === 11002) {
+          console.log('sendMessageV3ToNumber status === 11002.');
+        }
+        // 过期用户11001，deleteSession 重试消息发送；
+        if (response.status === 11001) {
+          console.log('sendMessageV3ToNumber status === 11001.');
+          if (
+            Array.isArray(response?.data?.stale) &&
+            response?.data?.stale.length
+          ) {
+            const key = response?.data?.stale[0];
+            await window.Signal.Data.createOrUpdateSessionV2({
+              ...key,
+            });
+
+            if (!this.extension) {
+              this.extension = {};
+            }
+            if (!this.extension.sessionV2) {
+              this.extension.sessionV2 = {};
+            }
+            this.extension.sessionV2.identityKey = key.identityKey;
+            this.extension.sessionV2.registrationId = key.registrationId;
+
+            // 更新此人session
+            const expiredSessionUser = ConversationController.get(key.uid);
+            if (expiredSessionUser) {
+              expiredSessionUser.forceUpdateSessionV2(key);
+            }
+            this.sendToNumberV3(number);
+          } else {
+            this.registerError(
+              number,
+              'Send message to number failed - bad stale data.'
+            );
+          }
+          return;
+        }
+
         this.sequenceIdMap[number] = response?.sequenceId;
         this.serverTimestampMap[number] = response?.systemShowTimestamp;
         this.notifySequenceIdMap[number] = response?.notifySequenceId;

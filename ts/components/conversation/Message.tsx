@@ -1170,19 +1170,21 @@ export class Message extends React.PureComponent<Props, State> {
       contact,
       // conversationType,
       direction,
+      authorId,
       i18n,
       text,
     } = this.props;
     if (!contact) {
       return null;
     }
-
     const withCaption = Boolean(text);
     const withContentAbove = direction === 'incoming';
     const withContentBelow = withCaption || !collapseMetadata;
 
     return (
       <EmbeddedContact
+        //分享人id
+        shareId={authorId}
         contact={contact}
         hasSignalAccount={contact.hasSignalAccount}
         isIncoming={direction === 'incoming'}
@@ -1847,6 +1849,7 @@ export class Message extends React.PureComponent<Props, State> {
       threadProps,
       onThreadReply,
       onReplyOldMessageWithoutTopic,
+      isConfidentialMessage,
     } = this.props;
 
     if (!isCorrectSide || disableMenu) {
@@ -1996,7 +1999,8 @@ export class Message extends React.PureComponent<Props, State> {
 
     const forwardButton = (
       <>
-        {status != 'error' &&
+        {!isConfidentialMessage &&
+        status != 'error' &&
         status != 'sending' &&
         !isAudio(attachments) &&
         attachmentsReady &&
@@ -2027,7 +2031,9 @@ export class Message extends React.PureComponent<Props, State> {
 
     const replyButton = (
       <>
-        {conversationType === 'group' && showThreadBar ? (
+        {conversationType === 'group' &&
+        showThreadBar &&
+        !isConfidentialMessage ? (
           <Tooltip
             mouseEnterDelay={1.5}
             overlayClassName={'antd-tooltip-cover'}
@@ -2050,7 +2056,8 @@ export class Message extends React.PureComponent<Props, State> {
               }}
             />
           </Tooltip>
-        ) : conversationType === 'direct' || !showThreadBar ? (
+        ) : !isConfidentialMessage &&
+          (conversationType === 'direct' || !showThreadBar) ? (
           <Tooltip
             mouseEnterDelay={1.5}
             overlayClassName={'antd-tooltip-cover'}
@@ -2118,7 +2125,7 @@ export class Message extends React.PureComponent<Props, State> {
 
     const translateButton = (
       <>
-        {showTranslateMenuItem ? (
+        {!isConfidentialMessage && showTranslateMenuItem ? (
           <ContextMenuTrigger
             id={triggerId + '-translate'}
             ref={this.captureTranslateMenuTriggerBound}
@@ -2161,7 +2168,7 @@ export class Message extends React.PureComponent<Props, State> {
 
     const reactionButton = (
       <>
-        {showReaction ? (
+        {!isConfidentialMessage && showReaction ? (
           <Popover
             trigger="click"
             open={this.state.reactionButtonPopoverVisible}
@@ -2700,6 +2707,10 @@ export class Message extends React.PureComponent<Props, State> {
       translateError,
     } = this.props;
 
+    if (isConfidentialMessage) {
+      return null;
+    }
+
     const displayTranslate = translatedText && translateLang;
     if (!displayTranslate && !translating && !translateError) {
       return null;
@@ -2880,7 +2891,7 @@ export class Message extends React.PureComponent<Props, State> {
         >
           {this.renderPinIcon()}
           {this.renderAuthor()}
-          {this.renderReplyHeader()}
+          {/*{this.renderReplyHeader()}*/}
           {this.renderForwardHeader()}
           {this.renderQuote()}
           {this.renderAttachment()}

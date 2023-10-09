@@ -87,7 +87,7 @@ export class GroupNotification extends React.Component<Props> {
       newName,
       pin,
       scrollToMessage,
-      setFeedbackMessage,
+      // setFeedbackMessage,
       feedback,
       normalString,
       meetingReminder,
@@ -339,31 +339,33 @@ export class GroupNotification extends React.Component<Props> {
         if (feedback === '###' || feedback === true) {
           return (
             <div>
-              <span>Meeting ended. Please </span>
-              <span
-                className="span-click"
-                onClick={() => {
-                  if (setFeedbackMessage) setFeedbackMessage();
-                }}
-              >
-                click here
-              </span>
-              <span> to share your feedback about the meeting.</span>
+              <span>Meeting ended.</span>
+              {/*<span>Meeting ended. Please </span>*/}
+              {/*<span*/}
+              {/*  className="span-click"*/}
+              {/*  onClick={() => {*/}
+              {/*    if (setFeedbackMessage) setFeedbackMessage();*/}
+              {/*  }}*/}
+              {/*>*/}
+              {/*  click here*/}
+              {/*</span>*/}
+              {/*<span> to share your feedback about the meeting.</span>*/}
             </div>
           );
         } else {
           return (
             <div>
-              <span>{'Meeting ended ' + feedback + '. Please '}</span>
-              <span
-                className="span-click"
-                onClick={() => {
-                  if (setFeedbackMessage) setFeedbackMessage();
-                }}
-              >
-                click here
-              </span>
-              <span> to share your feedback about the meeting.</span>
+              <span>{'Meeting ended ' + feedback + '.'}</span>
+              {/*<span>{'Meeting ended ' + feedback + '. Please '}</span>*/}
+              {/*<span*/}
+              {/*  className="span-click"*/}
+              {/*  onClick={() => {*/}
+              {/*    if (setFeedbackMessage) setFeedbackMessage();*/}
+              {/*  }}*/}
+              {/*>*/}
+              {/*  click here*/}
+              {/*</span>*/}
+              {/*<span> to share your feedback about the meeting.</span>*/}
             </div>
           );
         }

@@ -16,17 +16,22 @@
 
         .text-message-preset {
           border-radius: 4px;
-          text-align: left;
+          display: flex;
+          align-items: flex-start;
 
-          .text-message-preset-cell {
-            padding: 0 15px;
+          &-block {
             display: block;
-            height: 36px;
-            line-height: 36px;
-            cursor: pointer;
+            &-cell {
+              text-align: left;
+              padding: 0 15px;
+              display: block;
+              height: 36px;
+              line-height: 36px;
+              cursor: pointer;
 
-            &:hover {
-              background-color: $app-color-background-3-dark;
+              &:hover {
+                background-color: $app-color-background-3-dark;
+              }
             }
           }
         }

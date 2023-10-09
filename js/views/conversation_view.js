@@ -36,13 +36,13 @@
       return { toastMessage: i18n('unblockToSend') };
     },
   });
-  Whisper.BlockToast = Whisper.BlockToastView.extend({
-    className: 'block-bot-toast',
-    templateName: 'toast',
-    render_attributes() {
-      return { toastMessage: i18n('blockBotToSend') };
-    },
-  });
+  // Whisper.BlockToast = Whisper.BlockToastView.extend({
+  //   className: 'block-bot-toast',
+  //   templateName: 'toast',
+  //   render_attributes() {
+  //     return { toastMessage: i18n('blockBotToSend') };
+  //   },
+  // });
 
   Whisper.unSpeak = Whisper.CenterToastView.extend({
     render_attributes() {
@@ -62,7 +62,7 @@
   });
   Whisper.UnBlocked = Whisper.CenterToastView.extend({
     render_attributes() {
-      return { toastMessage: i18n('unBlocked') };
+      return { toastMessage: i18n('unblocked') };
     },
   });
   Whisper.BlockedGroupToast = Whisper.ToastView.extend({
@@ -96,7 +96,7 @@
     },
   });
 
-  const MAX_MESSAGE_BODY_LENGTH = 64 * 1024;
+  const MAX_MESSAGE_BODY_SIZE = 4 * 1024; // 4k
   Whisper.MessageBodyTooLongToast = Whisper.ToastView.extend({
     render_attributes() {
       return { toastMessage: i18n('messageBodyTooLong') };
@@ -182,8 +182,12 @@
       // this.listenTo(this.model, 'change:verified', this.onVerifiedChange);
       this.listenTo(this.model, 'newmessage', this.addMessage);
       this.listenTo(this.model, 'change:isBlock', this.onBlockChange);
+      //好友变化时更新frineRequest
+      this.listenTo(this.model, 'change:directoryUser', this.onBlockChange);
+
       this.listenTo(this.model, 'blockedToSend', this.showUnblockedToast);
       this.listenTo(this.model, 'sendHistory', this.quickSendHistory);
+
       this.listenTo(
         this.model,
         'insert-at-person-msg',
@@ -800,6 +804,7 @@
 
       // 先将视频按钮隐藏掉
       this.$('.call-video').hide();
+      this.$('.call-voice').hide();
 
       // 机器人要隐藏语音通话按钮
       if (window.Signal.ID.isBotId(this.model.id)) {
@@ -865,6 +870,43 @@
       this.listenTo(this.model, 'change:confidentialMode', () => {
         this.confidentialModeButton.update(getPropsForConfidentialMode());
       });
+
+      setTimeout(async () => {
+        await this.model.apiGetConfig();
+        this.getPropsForFriendRequestOptionMode = () => {
+          return {
+            i18n,
+            //发送来源
+            findyouDescribe: this.model.get('findyouDescribe'),
+            isBlocked: this.model.get('isBlock'),
+            setBlockSetting: async block => {
+              await this.setBlockSetting(block);
+            },
+
+            //同意好友申请
+            sendAgreeFriend: async () => {
+              await this.model.sendAgreeFriend();
+              this.showSendMessage(this.model.getIsShowSendMessage());
+            },
+            //发送警告报告
+            sendReport: async () => {
+              await this.model.sendReport(this.model.id, 1, 'report reason');
+              await this.setBlockSetting(true);
+              this.showSendMessage(this.model.getIsShowSendMessage());
+            },
+          };
+        };
+        //私有 1v1 情况显示friend-request-option
+        if (this.model.isPrivate()) {
+          this.FriendRequestOption = new Whisper.ReactWrapperView({
+            className: 'friend-request-option',
+            Component: window.Signal.Components.FriendRequestOption,
+            elCallback: el => this.$('.friend-request-option').replaceWith(el),
+            props: this.getPropsForFriendRequestOptionMode(),
+          });
+          this.showSendMessage(this.model.getIsShowSendMessage());
+        }
+      }, 0);
 
       this.chooseAtPersionButtonView = new Whisper.ReactWrapperView({
         Component: window.Signal.Components.AtPersonButton,
@@ -965,6 +1007,7 @@
     },
     events: {
       keydown: 'onKeyDown',
+      mousemove: 'onMouseMove',
       'submit .send': 'checkUnverifiedSendMessage',
       'input .send-message': 'onInputChange',
       'keydown .send-message': 'updateMessageFieldSize',
@@ -2071,7 +2114,12 @@
       // The in-progress fetch check is important, because while that happens, lots
       //   of messages are added to the DOM, one by one, changing window size and
       //   generating scroll events.
-      if (!this.isHidden() && window.isFocused() && !this.inProgressFetch) {
+      if (
+        !this.isHidden() &&
+        window.isFocused() &&
+        !this.inProgressFetch &&
+        window.isActivation()
+      ) {
         this.lastActivity = Date.now();
 
         if (!this.isMessageViewHidden()) {
@@ -2490,6 +2538,20 @@
         window.noticeError('submit time out!');
       }, 30000);
     },
+    //是否展示sendMessage
+    showSendMessage(isShow) {
+      if (!isShow) {
+        $('.send-message-top-bar').hide();
+        $('.send-message').hide();
+        //显示friend 选项框
+        $('.friend-request-option').show();
+      } else {
+        $('.send-message-top-bar').show();
+        $('.send-message').show();
+        //隐藏friend 选项框
+        $('.friend-request-option').hide();
+      }
+    },
 
     async openMeetingDetail(groupMeetingId) {
       // 若已离开群
@@ -2563,6 +2625,15 @@
       setTimeout(() => this.model.unmarkAsUnread(), 0);
       setTimeout(() => this.fetchConversationSettingsIfNeeded(), 0);
       setTimeout(() => this.model.debouncedUpdateLastMessage(), 0);
+      setTimeout(() => {
+        this.showSendMessage(this.model.getIsShowSendMessage());
+      });
+      setTimeout(() => {
+        //打开群组列表
+        if (window.isClickCommonGroup) {
+          this.onOpenSetting();
+        }
+      }, 0);
       setTimeout(async () => {
         if (this.model.syncedShared) {
           return;
@@ -2801,9 +2872,10 @@
       ) {
         this.removeScrollDownButton();
         this.removeMentionsJumpButton();
-
-        this.throttleMarkRead();
-        this.throttleMarkRead.flush();
+        if (window.isActivation()) {
+          this.throttleMarkRead();
+          this.throttleMarkRead.flush();
+        }
       }
     },
 
@@ -3408,7 +3480,6 @@
     },
 
     isLazyLoad() {
-      // do lazy load only when conversation view is hidden
       if (!this.isHidden()) {
         return false;
       }
@@ -3483,13 +3554,29 @@
           this.resetLastSeenIndicator({ scroll: true });
         }
       } else if (!this.isHidden() && window.isFocused()) {
-        // The conversation is visible and in focus
-        this.throttleMarkRead();
+        if (!window.isActivation()) {
+          if (!this.lastSeenIndicator) {
+            this.resetLastSeenIndicator({ scroll: false });
+          } else if (
+            this.view?.atBottom() &&
+            this.model.get('unreadCount') === this.lastSeenIndicator.getCount()
+          ) {
+            // The count check ensures that the last seen indicator is still in
+            //   sync with the real number of unread, so we can scroll to it.
+            //   We only do this if we're at the bottom, because that signals that
+            //   the user is okay with us changing scroll around so they see the
+            //   right unseen message first.
+            this.resetLastSeenIndicator({ scroll: true });
+          }
+        } else {
+          // The conversation is visible and in focus
+          this.throttleMarkRead();
 
-        // When we're scrolled up and we don't already have a last seen indicator
-        //   we add a new one.
-        if (this.view && !this.view.atBottom() && !this.lastSeenIndicator) {
-          this.resetLastSeenIndicator({ scroll: false });
+          // When we're scrolled up and we don't already have a last seen indicator
+          //   we add a new one.
+          if (this.view && !this.view.atBottom() && !this.lastSeenIndicator) {
+            this.resetLastSeenIndicator({ scroll: false });
+          }
         }
       }
     },
@@ -4195,17 +4282,26 @@
     },
 
     onBlockChange() {
-      const isBlock = this.model.get('isBlock');
-      if (isBlock) {
-        if (!this.blockToast) {
-          this.blockToast = new Whisper.BlockToast();
-          this.blockToast.$el.appendTo(this.$el);
-          this.blockToast.render();
+      //const isBlock = this.model.get('isBlock');
+      // if (isBlock) {
+      //   if (!this.blockToast) {
+      //     this.blockToast = new Whisper.BlockToast();
+      //     this.blockToast.$el.appendTo(this.$el);
+      //     this.blockToast.render();
+      //   }
+      // } else {
+      //   this.blockToast?.close();
+      //   this.blockToast = null; //toast移除后需要置空
+      // }
+      //追加FrindRequest的操作
+      setTimeout(async () => {
+        if (this.model.isPrivate() && this.FriendRequestOption) {
+          this.showSendMessage(this.model.getIsShowSendMessage());
+          this.FriendRequestOption.update(
+            this.getPropsForFriendRequestOptionMode()
+          );
         }
-      } else {
-        this.blockToast?.close();
-        this.blockToast = null; //toast移除后需要置空
-      }
+      }, 0);
     },
 
     showUnblockedToast() {
@@ -4409,8 +4505,26 @@
       });
       this.$('.discussion-container').append(this.emojiView.el);
     },
-
+    onMouseMove(event) {
+      if (window.isShouldScrollToBottom) {
+        //输入键盘按钮追加scrollToBottom 事件
+        if (this.$el.css('display') !== 'none') {
+          this.throttleMarkRead();
+          this.throttleMarkRead.flush();
+        }
+        window.isShouldScrollToBottom = false;
+      }
+    },
     onKeyDown(event) {
+      if (window.isShouldScrollToBottom) {
+        //输入键盘按钮追加scrollToBottom 事件
+        if (this.$el.css('display') !== 'none') {
+          this.throttleMarkRead();
+          this.throttleMarkRead.flush();
+        }
+        window.isShouldScrollToBottom = false;
+      }
+
       if (event.key !== 'Escape') {
         return;
       } else {
@@ -4995,9 +5109,6 @@
       }
       if (!this.model.isPrivate() && this.model.isMeLeftGroup()) {
         toast = new Whisper.LeftGroupToast();
-      }
-      if (originalMessage.length > MAX_MESSAGE_BODY_LENGTH) {
-        toast = new Whisper.MessageBodyTooLongToast();
       }
       if (!toast && !this.model.isMeCanSpeak()) {
         this.showUnspeakToast();
@@ -6362,15 +6473,17 @@
     },
 
     async fetchConversationSettingsIfNeeded() {
+      //await this.model.apiGetConfig();
+      //this.model.syncedConfig = true;
       if (!this.model.syncedConfig) {
         try {
           await this.model.apiGetConfig();
 
-          if (this.model.get('isBlock')) {
-            this.blockToast = new Whisper.BlockToast();
-            this.blockToast.$el.appendTo(this.$el);
-            this.blockToast.render();
-          }
+          // if (this.model.get('isBlock')) {
+          //   this.blockToast = new Whisper.BlockToast();
+          //   this.blockToast.$el.appendTo(this.$el);
+          //   this.blockToast.render();
+          // }
 
           this.model.syncedConfig = true;
         } catch (error) {
@@ -6379,9 +6492,39 @@
       }
     },
 
+    messageBodySizeCheck(event) {
+      const value = event?.target?.value;
+      if (!value?.length) {
+        return;
+      }
+      let byte = 0;
+      let result = '';
+      let toastFlag = false;
+      for (let i = 0; i < value.length; i++) {
+        if (value.charCodeAt(i) > 255) {
+          byte += 2;
+        } else {
+          byte++;
+        }
+        if (byte <= MAX_MESSAGE_BODY_SIZE) {
+          result += value[i];
+        } else {
+          toastFlag = true;
+        }
+      }
+      event.target.value = result;
+      if (toastFlag) {
+        const toast = new Whisper.MessageBodyTooLongToast();
+        toast.$el.appendTo(this.$el);
+        toast.render();
+        this.focusMessageFieldAndClearDisabled();
+      }
+    },
+
     onInputChange(event) {
       this.updateMessageFieldSize(event);
       this.updateAtView();
+      this.messageBodySizeCheck(event);
     },
 
     async saveDraft() {

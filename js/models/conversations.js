@@ -797,6 +797,16 @@
     format() {
       return this.cachedProps;
     },
+    getUidBase58() {
+      if (this.isPrivate()) {
+        let id = this.id.replace('+', '');
+        let idBase58 = window.base58_encode(id.toString());
+        return idBase58;
+      } else {
+        return '';
+      }
+    },
+
     getProps() {
       const { format } = PhoneNumber;
       const regionCode = storage.get('regionCode');
@@ -806,7 +816,11 @@
 
       const result = {
         id: this.id,
-
+        uid: this.getUidBase58(),
+        joinedAt: this.get('joinedAt') ? this.get('joinedAt') : '',
+        met: this.get('sourceDescribe'),
+        //追加是否是好友
+        directoryUser: this.isDirectoryUser(),
         isArchived: this.get('isArchived'),
         activeAt: this.get('active_at'),
         avatarPath: this.getAvatarPath(),
@@ -1478,6 +1492,10 @@
       };
     },
 
+    async forceUpdateSessionV2(session) {
+      this.userSessionV2 = session;
+    },
+
     async loadSessionV2() {
       if (this.userSessionV2) {
         return;
@@ -1488,13 +1506,13 @@
         const userSession = await window.Signal.Data.getSessionV2ById(uid);
 
         // 如果没有session，就发起网络请求
-        if (!userSession?.msgEncVersion) {
+        if (!userSession?.identityKey) {
           const userKeys = await window
             .getAccountManager()
             .getUserSessionsV2KeyByUid([uid]);
           if (Array.isArray(userKeys?.keys) && userKeys.keys.length) {
             const session = userKeys.keys[0];
-            if (session?.uid && session?.msgEncVersion) {
+            if (session?.uid && session?.identityKey) {
               // 保存 session
               await window.Signal.Data.createOrUpdateSessionV2({
                 ...session,
@@ -1918,7 +1936,42 @@
         );
       }
     },
+    async sendFrindByMessage() {
+      //判断是否是好友
+      if (this.isDirectoryUser()) {
+        return;
+      }
+      const messages = this.messageCollection;
+      const lastMessage = this.messageCollection.last();
 
+      let isSendFriend = true;
+      if (messages.length > 0) {
+        messages.map(message => {
+          if (
+            message.isOutgoing() &&
+            message.getMessagePropStatus() !== 'error' &&
+            lastMessage.id !== message.id
+          ) {
+            isSendFriend = false;
+          }
+        });
+      }
+
+      if (isSendFriend) {
+        if (window.conversationFrom) {
+          if (window.conversationFrom.isSend) {
+            //发送群消息来源的好友请求
+            await textsecure.messaging.applyFriendByUid(this.id, {
+              type: window.conversationFrom.type,
+              groupID: window.conversationFrom.id,
+            });
+          } else {
+            //发送好友请求
+            await textsecure.messaging.applyFriendByUid(this.id);
+          }
+        }
+      }
+    },
     async updateLastMessage() {
       if (!this.id) {
         return;
@@ -4440,9 +4493,9 @@
       }
     },
     async setBotBlock(block) {
-      if (!this.isBlockBot()) {
-        throw new Error('can not change block status for normal conversation');
-      }
+      // if (!this.isBlockBot()) {
+      //   throw new Error('can not change block status for normal conversation');
+      // }
 
       let blockStatus;
 
@@ -4473,7 +4526,6 @@
       } else {
         this.blockBot = false;
       }
-
       return this.blockBot;
     },
 
@@ -4858,6 +4910,11 @@
         return false;
       };
 
+      if (contact['joinedAt'] !== undefined) {
+        update = true;
+        attributes['joinedAt'] = contact['joinedAt'];
+      }
+
       const emailHandler = attr => {
         let email = contact[attr] || '';
         if (typeof email === 'string') {
@@ -5155,7 +5212,9 @@
         const result = await textsecure.messaging.fetchDirectoryContacts([
           this.id,
         ]);
+
         const contact = result.contacts[0];
+
         if (contact && contact.number === this.id) {
           const { avatar } = contact;
           contact.commonAvatar = this.parsePrivateAvatar(avatar);
@@ -6246,6 +6305,8 @@
       MessageController.register(message.id, message);
 
       this.trigger('newmessage', message);
+
+      return message;
     },
 
     async broughtToFront() {
@@ -6588,6 +6649,22 @@
 
       const existVersion = this.get('settingVersion');
       const { version: settingVersion } = configData;
+      const {
+        sourceDescribe,
+        findyouDescribe,
+        muteStatus,
+        blockStatus,
+        confidentialMode,
+        remark,
+      } = configData;
+
+      if (typeof sourceDescribe !== 'undefined') {
+        await this.set('sourceDescribe', sourceDescribe);
+      }
+
+      if (typeof findyouDescribe !== 'undefined') {
+        await this.set('findyouDescribe', findyouDescribe);
+      }
       if (existVersion > settingVersion) {
         log.info(
           'remote setting version is smaller.',
@@ -6605,17 +6682,12 @@
         return;
       }
 
-      const { muteStatus, blockStatus, confidentialMode, remark } = configData;
-
       const update = {};
+
       if (this.get('muteStatus') !== muteStatus) {
         Object.assign(update, { muteStatus, isMute: !!muteStatus });
-
-        // TODO:// remove isMute
-        // if (this.has('isMute')) {
-        //   this.unset('isMute', { silent: true });
-        // }
       }
+      //alert(sourceDescribe);
 
       if (this.get('blockStatus') !== blockStatus) {
         Object.assign(update, { blockStatus, isBlock: !!blockStatus });
@@ -6687,9 +6759,9 @@
         );
         throw new Error(error);
       }
-
       return await this.updateConfig(result?.data, true);
     },
+
     async apiGetConfig() {
       let result;
 
@@ -6708,13 +6780,22 @@
       }
 
       const conversations = result?.data?.conversations;
+
       if (!conversations?.length) {
         const error = 'Server response invalid config data.';
         log.error(error, result);
         return;
       }
+      const conversation = conversations?.[0];
+      //追加  sourceDescribe findyouDescribe 为空的本地修改
+      if (typeof conversation.sourceDescribe == 'undefined') {
+        conversation.sourceDescribe = '';
+      }
 
-      return await this.updateConfig(conversations?.[0], true);
+      if (typeof conversation.findyouDescribe == 'undefined') {
+        conversation.findyouDescribe = '';
+      }
+      return await this.updateConfig(conversation, true);
     },
     async decryptPrivateRemark(remark) {
       if (!this.isPrivate()) {
@@ -6808,6 +6889,58 @@
           Errors.toLogFormat(error)
         );
       }
+    },
+
+    async sendAgreeFriend() {
+      if (this.isPrivate()) {
+        await textsecure.messaging.applyFriendByUid(this.id, null, 'accept');
+      }
+    },
+    async sendReport(uid, type, reason, block) {
+      if (this.isPrivate()) {
+        await textsecure.messaging.reportByUid(uid, type, reason, block);
+      }
+    },
+    isShowByMessage() {
+      const messages = this.messageCollection;
+
+      //判断是否有消息
+      if (messages.length < 1) {
+        return true;
+      }
+      //获取最后一条消息 如果是自己发送的显示发送框
+      const lastMessge = messages.last();
+
+      if (lastMessge.get('type') == 'outgoing') {
+        return true;
+      }
+      //判断消息里面有没有自己发送的消息
+      let isShow = false;
+      messages.map(message => {
+        if (message.get('type') == 'outgoing') {
+          isShow = true;
+        }
+      });
+      return isShow;
+    },
+    //判断是否展示发送sendMessage输出入框
+    getIsShowSendMessage() {
+      //判断是否展示sendMessage
+      //1,Accepted,2,最后一条消息是我发送的,isblock == false
+      //非私有展示消息
+      if (!this.isPrivate()) {
+        return true;
+      }
+      //被屏蔽 不显示sendMessage
+      if (this.get('isBlock')) {
+        return false;
+      }
+      //判断是否是好友 不是好友
+      //判断最后一条消息是否是我发送的，不是我发送的是否我有回复
+      if (!this.isDirectoryUser() && !this.isShowByMessage()) {
+        return false;
+      }
+      return true;
     },
 
     async setConfidentialMode(confidentialMode) {

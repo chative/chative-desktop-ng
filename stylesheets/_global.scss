@@ -2272,6 +2272,7 @@ button.onlytext {
     width: 180px;
     height: 30px;
     cursor: pointer;
+    padding-left: 2px;
     padding-bottom: 4.5px;
     margin-top: 3.5px;
     border-radius: 3px;
@@ -2579,13 +2580,15 @@ button.onlytext {
   margin-left: 5px;
 }
 
-.global-tag-external {
-  background: url(../images/tag-external.svg) center no-repeat;
-  width: 28px;
-  height: 16px;
-  display: flex;
+// .global-tag-external {
+//   background: url(../images/tag-external.svg) center no-repeat;
+//   width: 28px;
+//   height: 16px;
+//   display: flex;
+// }
+.friend-request-option {
+  display: none;
 }
-
 .rejoin-tip {
   @include color-svg('../images/archive_tips.svg', #3d3e44);
   height: 17px;

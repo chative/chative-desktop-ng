@@ -11,6 +11,7 @@ import { NotificationSetting } from './NotificationSetting';
 import { GeneralSetting } from './GeneralSetting';
 // import { StatusSetting } from './StatusSetting';
 import { processImageFile } from '../../util/processImageFile';
+import { LanguageSetting } from './LanguageSetting';
 
 export interface Props {
   closeSetting: () => void;
@@ -37,6 +38,7 @@ interface State {
   showThemeSetting: boolean;
   showNotificationSetting: boolean;
   showGeneralSetting: boolean;
+  showLanguageSetting: boolean;
   showProfileDialog: boolean;
 }
 
@@ -65,6 +67,7 @@ export class CommonSetting extends React.Component<Props, State> {
       showThemeSetting: false,
       showNotificationSetting: false,
       showGeneralSetting: false,
+      showLanguageSetting: false,
       showProfileDialog: false,
     };
 
@@ -507,6 +510,14 @@ export class CommonSetting extends React.Component<Props, State> {
         </Popover>
 
         <CommonSettingItem
+          title={i18n('language')}
+          showArrow={true}
+          clickAction={() => {
+            this.setState({ showLanguageSetting: true });
+          }}
+        />
+
+        <CommonSettingItem
           title={i18n('aboutSignalDesktop')}
           clickAction={() => {
             this.openAbout();
@@ -617,7 +628,7 @@ export class CommonSetting extends React.Component<Props, State> {
     }
   }
 
-  public rendeGeneralSetting() {
+  public renderGeneralSetting() {
     const { i18n } = this.props;
     const { showGeneralSetting } = this.state;
 
@@ -653,6 +664,36 @@ export class CommonSetting extends React.Component<Props, State> {
         </Drawer>
       );
     }
+  }
+
+  public renderLanguageSetting() {
+    const { i18n } = this.props;
+    const { showLanguageSetting } = this.state;
+    if (!showLanguageSetting) {
+      return null;
+    }
+    const closeSetting = () => {
+      this.setState({ showLanguageSetting: false });
+    };
+
+    return (
+      <Drawer
+        placement="left"
+        open={this.state.showLanguageSetting}
+        width={300}
+        style={{ left: 68 }}
+        contentWrapperStyle={{ boxShadow: 'none' }}
+        closable={false}
+        mask={false}
+        destroyOnClose={true}
+      >
+        <LanguageSetting
+          i18n={i18n}
+          title={i18n('language')}
+          closeSetting={closeSetting}
+        />
+      </Drawer>
+    );
   }
 
   render() {
@@ -692,7 +733,8 @@ export class CommonSetting extends React.Component<Props, State> {
           {this.renderSettingItems()}
           {this.renderThemeSetting()}
           {this.renderNotificationSetting()}
-          {this.rendeGeneralSetting()}
+          {this.renderGeneralSetting()}
+          {this.renderLanguageSetting()}
         </div>
       </div>
     );

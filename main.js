@@ -13,6 +13,7 @@ const electron = require('electron');
 const { redactAll } = require('./js/modules/privacy');
 const fetch = require('node-fetch');
 const { formatError } = require('./ts/logger/utils');
+const { markShouldQuit } = require('./app/window_state');
 
 // Add right-click listener for selected text and urls
 const contextMenu = require('electron-context-menu');
@@ -360,7 +361,7 @@ const userConfig = require('./app/user_config');
 
 // 默认开启硬件加速
 // 禁用当前应用程序的硬件加速。这个方法只能在应用程序准备就绪（ready）之前调用。
-const disableHardware = userConfig.get('disableHardwareAcceleration');
+const disableHardware = userConfig.get('disableHardwareAcceleration') || false;
 if (disableHardware) {
   app.disableHardwareAcceleration();
 }
@@ -464,6 +465,7 @@ const loadLocale = require('./app/locale').load;
 // Both of these will be set after app fires the 'ready' event
 let logger;
 let locale;
+let appLocale;
 
 function prepareURL(pathSegments, moreKeys) {
   const buildAt = config.has('buildAt') ? config.get('buildAt') : undefined;
@@ -808,6 +810,7 @@ ipc.on('show-window', () => {
 });
 
 let updatesStarted = false;
+
 ipc.on('ready-for-updates', async () => {
   // test reboot button
   // mainWindow.webContents.send('show-update-button');
@@ -925,10 +928,173 @@ ipc.on('main-window-openDevTools', () => {
 });
 
 let webApiUrlCache;
-
 let groupMeetingChannelName;
 let callVoiceWindowGroup;
 let callVoiceWindowGroupSystemClose = true;
+
+async function showCallVoiceGroupWindow(info) {
+  // linux meeting use web meeting
+  if (process.platform === 'linux') {
+    let { channelName, meetingName, groupMembers } = info;
+    if (!channelName) {
+      channelName =
+        (info.isPrivate ? 'P-' : 'I-') +
+        Buffer.from(customUUID()).toString('base64');
+    }
+    if (!meetingName) {
+      meetingName = 'Chative Meeting';
+    }
+
+    // open it in workspace app
+    let target = 'https://webmeeting.chative.im/?v=1&meetingname=';
+    if (packageJson.productName === 'ChativeTest') {
+      target = 'https://webmeeting.test.chative.im/?v=1&meetingname=';
+    }
+    target +=
+      betterEncodeURIComponent(meetingName) +
+      '&channelname=' +
+      betterEncodeURIComponent(channelName);
+
+    let invite = '';
+    if (info.id && channelName.startsWith('P-')) {
+      invite = info.id.replace('+', '');
+    }
+    if (channelName.startsWith('I-')) {
+      if (Array.isArray(groupMembers)) {
+        groupMembers.forEach(item => {
+          if (!item.self) {
+            if (invite) {
+              invite += '-' + item.id.replace('+', '');
+            } else {
+              invite += item.id.replace('+', '');
+            }
+          }
+        });
+      }
+    }
+    if (invite) {
+      target += '&invite=' + invite;
+    }
+    handleUrl(null, { target });
+
+    // 1. Instant meeting, should send notify message
+    if (channelName.startsWith('I-')) {
+      const joinUrl =
+        'chative://meeting?v=1' +
+        `&meetingname=${betterEncodeURIComponent(meetingName)}` +
+        `&channelname=${betterEncodeURIComponent(channelName)}` +
+        `&meetingId=0`;
+
+      const message = `invited you to "${meetingName}", [click to join the meeting](${joinUrl})`;
+
+      // 即时会议通知
+      if (Array.isArray(groupMembers)) {
+        groupMembers.forEach(item => {
+          if (!item.self) {
+            mainWindow?.webContents.send('voiceSendMessage', {
+              id: item.id,
+              message,
+              callAction: 'RING_GROUP',
+              meetingName,
+              channelName,
+              markdown: true,
+            });
+          }
+        });
+      }
+    }
+    return;
+  }
+
+  callVoiceWindowGroupSystemClose = true;
+  if (callVoiceWindowGroup) {
+    if (callVoiceWindowGroup.isVisible()) {
+      callVoiceWindowGroup.show();
+    }
+    if (callVoiceWindowGroup.isMinimized()) {
+      callVoiceWindowGroup.restore();
+    }
+    return;
+  }
+
+  groupMeetingChannelName = info.channelName;
+  const theme = globalTheme;
+
+  const options = {
+    width: 1024,
+    height: 768,
+    minWidth: 1024,
+    minHeight: 768,
+    autoHideMenuBar: true,
+    backgroundColor: '#181A20',
+    show: true,
+    webPreferences: {
+      nodeIntegration: true,
+      nodeIntegrationInWorker: false,
+      contextIsolation: false,
+      preload: path.join(__dirname, 'meeting_preload.js'),
+      nativeWindowOpen: true,
+      enableRemoteModule: true,
+      sandbox: false,
+    },
+    acceptFirstMouse: true,
+    // fullscreenable: false,
+    titleBarStyle: 'hidden',
+  };
+
+  callVoiceWindowGroup = new BrowserWindow(options);
+
+  captureClicks(callVoiceWindowGroup);
+
+  const tempInfo = { ...info, isBetaSubtitle };
+  delete tempInfo.groupMembers;
+
+  callVoiceWindowGroup.loadURL(
+    prepareURL([__dirname, 'meeting.html'], {
+      theme,
+      ...tempInfo,
+      webApiUrlCache,
+    })
+  );
+
+  callVoiceWindowGroup.on('close', e => {
+    if (callVoiceWindowGroupSystemClose) {
+      e.preventDefault();
+      callVoiceWindowGroup.webContents.send('system-close');
+    }
+  });
+
+  callVoiceWindowGroup.on('closed', () => {
+    groupMeetingChannelName = null;
+    callVoiceWindowGroup = null;
+    if (floatingBarWindow) {
+      floatingBarWindow.hide();
+    }
+  });
+
+  // callVoiceWindowGroup.once('ready-to-show', () => {
+  //   callVoiceWindowGroup.show();
+  // });
+
+  // 页面加载完成后，发送群成员数据（必须是主叫情况下）。
+  if (info.groupMembers) {
+    callVoiceWindowGroup.webContents.on('did-finish-load', () => {
+      callVoiceWindowGroup.webContents.send('group-members', info);
+    });
+  }
+
+  callVoiceWindowGroup.on('enter-full-screen', () => {
+    callVoiceWindowGroup.webContents.send('full-screen-state', true);
+  });
+
+  callVoiceWindowGroup.on('leave-full-screen', () => {
+    callVoiceWindowGroup.webContents.send('full-screen-state', false);
+  });
+
+  if (development) {
+    callVoiceWindowGroup.webContents.openDevTools();
+  }
+}
 
 let settingsWindow;
 
@@ -1102,7 +1268,9 @@ app.on('ready', async () => {
   if (!locale) {
     // 中文测试
     // const appLocale = 'zh-CN'
-    const appLocale = process.env.NODE_ENV === 'test' ? 'en' : app.getLocale();
+    // const appLocale = process.env.NODE_ENV === 'test' ? 'en' : app.getLocale();
+    const language = app.getLocale() === 'zh-CN' ? 'zh-CN' : 'en';
+    appLocale = userConfig.get('userLanguage') || language;
     locale = loadLocale({ appLocale, logger });
     updateLocale(locale);
   }
@@ -1448,7 +1616,6 @@ ipc.on('show-call-voice-group', async (event, info) => {
       shouldAcceptWindow.close();
       return;
     }
-
   } else {
     // 发起多人会议需要二次确认，若groupMembers只有一个人是拉自己入会的情况，不需要弹框
     // eslint-disable-next-line no-lonely-if
@@ -1509,9 +1676,7 @@ ipc.on('meeting-window-max-min', () => {
 
 // 将callWindow窗口数据转发到rtm窗口
 ipc.on('rtm-method', (event, info) => {
-  if (info.event === 'call-peer' || info.event === 'call-peer-group') {
-    event.sender.send('rtm-notify', { event: 'offline' });
-  }
+  logger.info('main.js rtm-method:', info);
 });
 
 // 将rtm窗口数据转发到callWindow窗口
@@ -1671,6 +1836,17 @@ ipc.on('listen-rtm-channel', (event, info) => {
   logger.info('main.js listen-rtm-channel:', info);
 });
 
+ipc.on('request-join-rtm-channel', () => {
+  logger.info('main.js request-join-rtm-channel');
+});
+ipc.on('meeting-version-low-warning', () => {
+  mainWindow.webContents.send('meeting-version-low-warning');
+});
+
+ipc.on('send-rtm-message', (event, info) => {
+  logger.info('main.js send-rtm-message:', info);
+});
+
 ipc.on('receive-rtm-message', (event, info) => {
   logger.info('main.js receive-rtm-message:', info);
   if (callVoiceWindowGroup) {
@@ -1755,16 +1931,28 @@ ipc.on('close-settings', () => {
 
 ipc.on(
   'open-add-meeting-members',
-  async (event, channelName, meetingName, meetingId) => {
+  async (
+    event,
+    channelName,
+    meetingName,
+    meetingId,
+    meetingKey,
+    meetingVersion
+  ) => {
     logger.info('main.js open-add-meeting-members channelName:' + channelName);
     logger.info('main.js open-add-meeting-members meetingName:' + meetingName);
     logger.info('main.js open-add-meeting-members meetingId:' + meetingId);
-
+    logger.info('main.js open-add-meeting-members meetingKey:' + meetingKey);
+    logger.info(
+      'main.js open-add-meeting-members meetingVersion:' + meetingVersion
+    );
     if (mainWindow) {
       mainWindow.webContents.send('open-add-meeting-members', {
         channelName,
         meetingName,
         meetingId,
+        meetingKey,
+        meetingVersion,
       });
       showWindow();
     } else {
@@ -1775,7 +1963,15 @@ ipc.on(
 
 ipc.on(
   'add-meeting-members',
-  (event, members, channelName, meetingName, meetingId) => {
+  (
+    event,
+    members,
+    channelName,
+    meetingName,
+    meetingId,
+    meetingKey,
+    meetingVersion
+  ) => {
     if (members && members.length && channelName) {
       if (mainWindow) {
         const instantMeetingName = meetingName || 'Instant meeting';
@@ -1900,9 +2096,27 @@ ipc.on('get-disable-hardware-acceleration', event => {
     userConfig.get('disableHardwareAcceleration') || false
   );
 });
+ipc.on('get-original-disable-hardware-acceleration', event => {
+  event.sender.send(
+    'get-success-original-disable-hardware-acceleration',
+    null,
+    disableHardware
+  );
+});
 ipc.on('set-disable-hardware-acceleration', (event, value) => {
   userConfig.set('disableHardwareAcceleration', value);
   event.sender.send('set-success-disable-hardware-acceleration', null);
+});
+ipc.on('set-user-language', (event, value) => {
+  userConfig.set('userLanguage', value);
+});
+ipc.on('get-language', event => {
+  const result = app.getLocale() === 'zh-CN' ? 'zh-CN' : 'en';
+  const language = userConfig.get('userLanguage') || result;
+  event.sender.send('get-success-language', null, language);
+});
+ipc.on('get-original-language', event => {
+  event.sender.send('get-success-original-language', null, appLocale);
 });
 
 installSettingsGetter('is-primary');
@@ -2060,6 +2274,173 @@ const incomingCallWindowHeight = 160;
 const incomingCallPadding = 8;
 const incomingCallWindows = new Map();
 
+// {channelName, caller, meetingName, isPrivate}
+async function showIncomingCallWindow(info) {
+  const { screen } = electron;
+  const theme = globalTheme;
+
+  const heightOffset =
+    incomingCallWindows.size * (incomingCallWindowHeight + incomingCallPadding);
+  const options = {
+    width: incomingCallWindowWidth,
+    height: incomingCallWindowHeight,
+    x:
+      screen.getPrimaryDisplay().size.width -
+      incomingCallWindowWidth -
+      incomingCallPadding, // dock在右侧时，会挤在dock边上
+    y:
+      screen.getPrimaryDisplay().workAreaSize.height -
+      incomingCallWindowHeight -
+      heightOffset,
+    autoHideMenuBar: true,
+    backgroundColor: '#2090EA',
+    show: false,
+    hasShadow: false,
+    webPreferences: {
+      nodeIntegration: false,
+      nodeIntegrationInWorker: false,
+      contextIsolation: false,
+      preload: path.join(__dirname, 'incoming_call_preload.js'),
+      nativeWindowOpen: true,
+      enableRemoteModule: true,
+      sandbox: false,
+    },
+    acceptFirstMouse: true,
+    frame: false,
+    resizable: false,
+    movable: false,
+    minimizable: false,
+    maximizable: false,
+    alwaysOnTop: true,
+    fullscreenable: false,
+  };
+
+  let w = new BrowserWindow(options);
+  w.caller = info.caller;
+  w.isPrivate = info.isPrivate;
+  incomingCallWindows.set(info.channelName, w);
+  w.loadURL(prepareURL([__dirname, 'incoming_call.html'], { ...info, theme }));
+
+  w.setAlwaysOnTop(true, 'screen-saver');
+  w.setVisibleOnAllWorkspaces(true);
+
+  w.on('closed', () => {
+    // remove from map
+    if (incomingCallWindows.has(info.channelName)) {
+      incomingCallWindows.delete(info.channelName);
+    }
+
+    // reset position
+    let index = 0;
+    // eslint-disable-next-line no-restricted-syntax
+    for (const item of incomingCallWindows.values()) {
+      const offset = index * (incomingCallWindowHeight + incomingCallPadding);
+      const [x] = item.getPosition();
+      item.setPosition(
+        x,
+        screen.getPrimaryDisplay().workAreaSize.height -
+          incomingCallWindowHeight -
+          offset,
+        true
+      );
+      index += 1;
+    }
+    w = null;
+  });
+
+  w.once('ready-to-show', () => {
+    // 快速关闭可能会是空的
+    if (!w) {
+      return;
+    }
+    w.show();
+  });
+}
+
+// {channelName, host, meetingName, lasting}
+async function showScheduleCallWindow(info) {
+  if (info.host) {
+    info.caller = info.host;
+  }
+  const { screen } = electron;
+  const theme = globalTheme;
+
+  const heightOffset =
+    incomingCallWindows.size * (incomingCallWindowHeight + incomingCallPadding);
+  const options = {
+    width: incomingCallWindowWidth,
+    height: incomingCallWindowHeight,
+    x:
+      screen.getPrimaryDisplay().size.width -
+      incomingCallWindowWidth -
+      incomingCallPadding, // dock在右侧时，会挤在dock边上
+    y:
+      screen.getPrimaryDisplay().workAreaSize.height -
+      incomingCallWindowHeight -
+      heightOffset,
+    autoHideMenuBar: true,
+    backgroundColor: '#2090EA',
+    show: false,
+    hasShadow: false,
+    webPreferences: {
+      nodeIntegration: false,
+      nodeIntegrationInWorker: false,
+      contextIsolation: false,
+      preload: path.join(__dirname, 'schedule_call_preload.js'),
+      nativeWindowOpen: true,
+      enableRemoteModule: true,
+      sandbox: false,
+    },
+    acceptFirstMouse: true,
+    frame: false,
+    resizable: false,
+    movable: false,
+    minimizable: false,
+    maximizable: false,
+    alwaysOnTop: true,
+    fullscreenable: false,
+  };
+
+  let w = new BrowserWindow(options);
+  w.caller = info.caller;
+  incomingCallWindows.set(info.channelName, w);
+  w.loadURL(prepareURL([__dirname, 'schedule_call.html'], { ...info, theme }));
+
+  w.setAlwaysOnTop(true, 'screen-saver');
+  w.setVisibleOnAllWorkspaces(true);
+
+  w.on('closed', () => {
+    // remove from map
+    if (incomingCallWindows.has(info.channelName)) {
+      incomingCallWindows.delete(info.channelName);
+    }
+
+    // reset position
+    let index = 0;
+    // eslint-disable-next-line no-restricted-syntax
+    for (const item of incomingCallWindows.values()) {
+      const offset = index * (incomingCallWindowHeight + incomingCallPadding);
+      const [x] = item.getPosition();
+      item.setPosition(
+        x,
+        screen.getPrimaryDisplay().workAreaSize.height -
+          incomingCallWindowHeight -
+          offset,
+        true
+      );
+      index += 1;
+    }
+    w = null;
+  });
+
+  w.once('ready-to-show', () => {
+    // 快速关闭可能会是空的
+    if (!w) {
+      return;
+    }
+    w.show();
+  });
+}
 
 ipc.on('open-incoming-call-window', async (event, info) => {
   if (incomingCallWindows.has(info.channelName)) {
@@ -2139,16 +2520,6 @@ ipc.on('passive-join-meeting', (event, info) => {
 });
 
 ipc.on('browser-open-url', handleUrl);
-
-ipc.on('freshWebApiUrlCache', async (event, info) => {
-  if (info) {
-    webApiUrlCache = JSON.stringify(info);
-    if (callVoiceWindowGroup) {
-      callVoiceWindowGroup.webContents.send('freshWebApiUrlCache', info);
-    }
-  }
-});
-
 ipc.on('get-meeting-global-config', () => {
   if (mainWindow) {
     mainWindow.webContents.send('get-meeting-global-config');
@@ -2159,18 +2530,6 @@ ipc.on('set-meeting-global-config', (event, info) => {
   if (callVoiceWindowGroup) {
     callVoiceWindowGroup.webContents.send('set-meeting-global-config', info);
   }
-});
-
-ipc.on('get-rtc-token', (event, channelName) => {
-  if (mainWindow) {
-    mainWindow.webContents.send('get-rtc-token', channelName);
-  }
-});
-
-ipc.on('set-rtc-token', (event, info) => {
-  incomingCallWindows.forEach(win => {
-    win.webContents.send('set-rtc-token', info);
-  });
 });
 
 const CAPTIVE_PORTAL_DETECTS = [
@@ -2487,6 +2846,68 @@ ipc.on('show-voice-call-window', () => {
 });
 
 let floatingBarWindow;
+
+async function createFloatingBarWindow(theme) {
+  const { screen } = electron;
+  const options = {
+    x: screen.getPrimaryDisplay().size.width / 2 - 110,
+    y: screen.getPrimaryDisplay().workAreaSize.height - 350,
+    width: 256,
+    height: 100,
+    show: false,
+    webPreferences: {
+      nodeIntegration: false,
+      nodeIntegrationInWorker: false,
+      contextIsolation: false,
+      preload: path.join(__dirname, 'floating_bar_preload.js'),
+      nativeWindowOpen: true,
+      enableRemoteModule: true,
+      sandbox: false,
+    },
+    resizable: development,
+    minimizable: false,
+    maximizable: false,
+    acceptFirstMouse: true,
+    movable: true,
+    alwaysOnTop: true,
+    fullscreenable: false,
+    frame: false,
+  };
+  floatingBarWindow = new BrowserWindow(options);
+  remoteMain.enable(floatingBarWindow.webContents);
+  floatingBarWindow.loadURL(
+    prepareURL([__dirname, 'floating_bar.html'], {
+      theme,
+    })
+  );
+
+  floatingBarWindow.setAlwaysOnTop(true, 'screen-saver');
+  // const version = os.release();
+  // 小于 macOS 12.0.0
+  // if (lt(version, '21.0.0')) {
+  //    floatingBarWindow.setVisibleOnAllWorkspaces(true);
+  // } else {
+  //   mainWindow.setFullScreenable(false);
+  //   app.dock.hide();
+  //   floatingBarWindow.setVisibleOnAllWorkspaces(true, {
+  //     visibleOnFullScreen: true,
+  //   });
+  //   floatingBarWindow.setFullScreenable(false);
+  //   floatingBarWindow.showInactive();
+  //   app.dock.show();
+  //   floatingBarWindow.hide();
+  //   mainWindow.setFullScreenable(true);
+  // }
+  floatingBarWindow.setVisibleOnAllWorkspaces(true);
+
+  floatingBarWindow.on('closed', () => {
+    floatingBarWindow = null;
+  });
+
+  // if (development) {
+  //   floatingBarWindow.webContents.openDevTools();
+  // }
+}
 
 ipc.on('show-floating-bar', async (event, speaker, isMuted, shareName) => {
   // 解决可能挂断后依然显示悬浮框的bug

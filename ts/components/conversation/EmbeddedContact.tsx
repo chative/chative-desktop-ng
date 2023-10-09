@@ -17,6 +17,8 @@ import { Popover } from 'antd';
 interface Props {
   contact: Contact;
   hasSignalAccount: boolean;
+  //分享人id
+  shareId?: string;
   i18n: LocalizerType;
   isIncoming: boolean;
   withContentAbove: boolean;
@@ -190,7 +192,7 @@ export class EmbeddedContact extends React.Component<Props, State> {
   }
 
   public renderProfile() {
-    const { i18n } = this.props;
+    const { i18n, shareId } = this.props;
 
     const id = this.state.userId;
     if (!id) {
@@ -201,6 +203,7 @@ export class EmbeddedContact extends React.Component<Props, State> {
       <Profile
         id={id}
         i18n={i18n}
+        shareid={shareId}
         onClose={() => {
           this.setState({ showProfileDialog: false });
         }}

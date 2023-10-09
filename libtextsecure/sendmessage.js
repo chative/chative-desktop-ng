@@ -2411,6 +2411,15 @@ MessageSender.prototype = {
   getConversationConfig(idOrIds) {
     return this.server.getConversationConfig(idOrIds);
   },
+  reportByUid(uid, type, reason, block) {
+    return this.server.reportByUid(uid, type, reason, block);
+  },
+  agreeFriendByUid(uid) {
+    return this.server.agreeFriendByUid(uid);
+  },
+  applyFriendByUid(uid, source, action) {
+    return this.server.applyFriendByUid(uid, source, action);
+  },
 
   setConversationConfig(conversationId, config) {
     return this.server.setConversationConfig(conversationId, config);
@@ -2557,6 +2566,11 @@ textsecure.MessageSender = function MessageSenderWrapper(username, password) {
   // conversation config
   this.getConversationConfig = sender.getConversationConfig.bind(sender);
   this.setConversationConfig = sender.setConversationConfig.bind(sender);
+
+  //举报，申请好友，接受好友
+  this.reportByUid = sender.reportByUid.bind(sender);
+  this.agreeFriendByUid = sender.agreeFriendByUid.bind(sender);
+  this.applyFriendByUid = sender.applyFriendByUid.bind(sender);
 };
 
 textsecure.MessageSender.prototype = {

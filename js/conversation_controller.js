@@ -248,6 +248,9 @@
     'name',
     'email',
     'timeZone',
+    'uid',
+    'joinedAt',
+    'sourceDescribe',
     'department',
     'superior',
     'address',
@@ -473,6 +476,23 @@
             window.log.info('ConversationController: done with loadOnly');
             return;
           }
+
+          const updateLastMessage = async () => {
+            for (const conversation of conversations) {
+              if (!conversation.get('active_at')) {
+                continue;
+              }
+
+              await conversation.debouncedUpdateLastMessage();
+              await new Promise(r => setTimeout(r, 50));
+            }
+          };
+
+          setTimeout(async () => {
+            await updateLastMessage();
+            setInterval(updateLastMessage, 60 * 60 * 1000);
+          }, 0);
+
           // await Promise.all(
           //   conversations.map(conversation => {
           //     if (conversation.get('active_at') &&

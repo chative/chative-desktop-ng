@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { LocalizerType } from '../../types/Util';
 import { SettingChooseItem } from './CommonSettingComponents';
+import { Modal } from 'antd';
+import { ExclamationCircleOutlined } from '@ant-design/icons';
 
 interface GeneralProps {
   i18n: LocalizerType;
@@ -11,6 +13,7 @@ interface GeneralProps {
 
 interface GeneralState {
   disableHardWareAcceleration: boolean;
+  originalDisableHardWareAcceleration: boolean;
   spellCheck: boolean;
   mediaPermissions: boolean;
   deviceName: string;
@@ -25,6 +28,8 @@ const getInitialData = async () => ({
   mediaPermissions: await mainWindow.getMediaPermissions(),
   disableHardwareAcceleration:
     await mainWindow.getDisableHardwareAcceleration(),
+  originalDisableHardWareAcceleration:
+    await mainWindow.getOriginalDisableHardwareAcceleration(),
   quitTopicSetting: await mainWindow.getQuitTopicSetting(),
 });
 
@@ -34,6 +39,7 @@ export class GeneralSetting extends Component<GeneralProps, GeneralState> {
 
     this.state = {
       disableHardWareAcceleration: false,
+      originalDisableHardWareAcceleration: false,
       spellCheck: false,
       mediaPermissions: false,
       deviceName: '',
@@ -46,6 +52,8 @@ export class GeneralSetting extends Component<GeneralProps, GeneralState> {
 
         this.setState({
           disableHardWareAcceleration: data.disableHardwareAcceleration,
+          originalDisableHardWareAcceleration:
+            data.originalDisableHardWareAcceleration,
           spellCheck: data.spellCheck,
           mediaPermissions: data.mediaPermissions,
           deviceName: data.deviceName,
@@ -67,6 +75,7 @@ export class GeneralSetting extends Component<GeneralProps, GeneralState> {
     const { i18n } = this.props;
     const {
       disableHardWareAcceleration,
+      originalDisableHardWareAcceleration,
       spellCheck,
       mediaPermissions,
       quitTopicSetting,
@@ -78,9 +87,25 @@ export class GeneralSetting extends Component<GeneralProps, GeneralState> {
           title={i18n('hardwareAccelerationDescription')}
           checked={disableHardWareAcceleration}
           mutliCheck={true}
-          onChange={value => {
-            mainWindow.setDisableHardwareAcceleration(value);
+          onChange={async value => {
             this.setState({ disableHardWareAcceleration: value });
+            await mainWindow.setDisableHardwareAcceleration(value);
+            if (originalDisableHardWareAcceleration === value) {
+              return;
+            }
+            Modal.confirm({
+              title: i18n('restartRequired'),
+              icon: <ExclamationCircleOutlined />,
+              content: i18n('restartToApplyChange'),
+              okText: i18n('restart'),
+              cancelText: i18n('later'),
+              onOk: () => {
+                mainWindow.restart();
+              },
+              onCancel: () => {
+                // this.setState({ disableHardWareAcceleration: !value });
+              },
+            });
           }}
         />
 

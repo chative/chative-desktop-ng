@@ -1403,12 +1403,6 @@ MessageReceiver.prototype.extend({
       return this.onChangeNotification(envelope);
     }
 
-    // TODO will remove this
-    if (envelope.type === textsecure.protobuf.Envelope.Type.PLAINTEXT) {
-      return;
-    }
-    // TODO will remove this
-
     if (envelope.content) {
       return this.handleContentMessage(envelope);
     } else if (envelope.legacyMessage) {

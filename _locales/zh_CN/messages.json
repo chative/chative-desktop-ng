@@ -30,6 +30,9 @@
   "greyFile": {
     "message": "不确定这个文件是否安全，确认要下载吗?"
   },
+  "ublockFriendMessage": {
+    "message": "确定要执行如下操作吗？"
+  },
   "redFile": {
     "message": "此文件已被确认是恶意文件，我们已经阻止了访问。"
   },
@@ -1054,6 +1057,9 @@
   "block": {
     "message": "屏蔽"
   },
+  "blockAndReport": {
+    "message": "屏蔽 & 举报"
+  },
   "archive": {
     "message": "归档会话"
   },
@@ -1168,6 +1174,15 @@
     "message": "关联新设备",
     "description": "The menu option shown in Chative iOS to add a new linked device"
   },
+  "linkDeviceStep1": {
+    "message": "在手机上打开Chative"
+  },
+  "linkDeviceStep2": {
+    "message": "点击右上角的\"+\"按钮"
+  },
+  "linkDeviceStep3": {
+    "message": "点击\"扫描\"并扫描二维码"
+  },
   "deviceName": {
     "message": "设备名称",
     "description": "The label in settings panel shown for the user-provided name for this desktop instance"
@@ -1214,6 +1229,12 @@
   "general": {
     "message": "通用",
     "description": "Header for general options on the settings screen"
+  },
+  "language": {
+    "message": "语言"
+  },
+  "restartToApplyChange": {
+    "message": "该设置将在app重启后生效"
   },
   "spellCheckDescription": {
     "message": "启用输入框拼写检查",
@@ -1313,8 +1334,11 @@
   "blocked":{
     "message": "已设置屏蔽"
   },
-  "unBlocked": {
+  "unblocked": {
     "message": "已取消屏蔽"
+  },
+  "unblock": {
+    "message": "取消屏蔽"
   },
   "unSpeak": {
     "message": "仅协调人可发言"
@@ -1418,6 +1442,10 @@
   "timestampFormat_M": {
     "message": "MMM D",
     "description": "Timestamp format string for displaying month and day (but not the year) of a date within the current year, ex: use 'MMM D' for 'Aug 8', or 'D MMM' for '8 Aug'."
+  },
+  "messageBodyTooLong": {
+    "message": "超出4096字符数限制",
+    "description": "Shown if the user tries to send more than 4kb of text"
   },
   "blockBotToSend": {
     "message": "\uD83D\uDEAB您已经屏蔽了来自这个机器人的私聊消息，请在会话设置中进行更改。"
@@ -1897,6 +1925,9 @@
   "call_voice_initializing": {
     "message": "正在初始化..."
   },
+  "uid_name": {
+    "message": "账号"
+  },
   "group_call_voice_join_group": {
     "message": "加入语音群聊"
   },
@@ -1989,6 +2020,9 @@
   },
   "group_editor_select_at_least_one": {
     "message": "至少选择一个群组成员"
+  },
+  "meetingVersionLowWarning": {
+    "message": "对方的设备不支持此会议的安全特性，请邀请对方入群并在群中重开会议，以便兼容。此问题近期将被解决。"
   },
   "group_editor_add_group_members_title": {
     "message": "添加群成员"
@@ -2410,6 +2444,16 @@
   "task_sort_by_create_time": {
     "message": "按照创建时间排序"
   },
+  "joined_at": {
+    "message": "注册时间"
+  },
+  "how_you_met": {
+    "message": "如何相遇"
+  },
+  "common_groups": {
+    "message": "共同群"
+  },
+
   "task_sort_by_due_time": {
     "message": "按照截止时间排序"
   },
@@ -3247,7 +3291,7 @@
     "message": "不归档"
   },
   "groupMessageExpiryUpdated": {
-    "message": "当前群组消息归档时间设置为$days$"
+    "message": "以下消息将在被阅读后$days$后消失"
   },
   "groupArchiveIndicatorTips1": {
     "message": "- 归档的消息将不能被查看和搜索。"
@@ -3511,5 +3555,32 @@
   },
   "groupCountTitle2": {
     "message": "$count$ 群组"
+  },
+  "restartRequired": {
+    "message": "重启后生效"
+  },
+  "later": {
+    "message": "稍后"
+  },
+  "restart": {
+    "message": "重启"
+  },
+  "languageRestartToApplyChange": {
+    "message": "语言设置将在app重启后生效"
+  },
+  "joinMeetingNoSecretKey": {
+    "message": "您没有会议密钥，请联系会议中的伙伴邀请您入会。"
+  },
+  "reminderBy": {
+    "message": "提醒来自"
+  },
+  "createdReminder": {
+    "message": "创建了一个提醒"
+  },
+  "changedReminder": {
+    "message": "修改了一个提醒"
+  },
+  "deletedReminder": {
+    "message": "删除了一个提醒"
   }
 }

@@ -34,6 +34,10 @@ export default function Load(props: PropsType) {
   const [channelName, setChannelName] = useState('');
   const [memberRapidRole, setMemberRapidRole] = useState<any>({});
   const [membersChangeMeetingId, setMembersChangeMeetingId] = useState('');
+  //设置meetingKey和meetingVersion
+  const [membersChangeMeetingKey, setMembersChangeMeetingKey] = useState('');
+  const [membersChangeMeetingVersion, setMembersChangeMeetingVersion] =
+    useState(1);
 
   const [loading, setLoading] = useState(false);
 
@@ -205,11 +209,14 @@ export default function Load(props: PropsType) {
     }
     if (membersChangeType === 'meeting-add') {
       setShowMembersChangeDialog(false);
+
       (window as any).addMeetingMembers(
         members,
         channelName,
         membersChangeGroupName,
-        membersChangeMeetingId
+        membersChangeMeetingId,
+        membersChangeMeetingKey,
+        membersChangeMeetingVersion
       );
     }
   };
@@ -540,8 +547,9 @@ export default function Load(props: PropsType) {
     if (ev.detail.type === 'meeting-add' && ev.detail.channelName) {
       // 创建群组是独立的标记，这边置为false。
       setShowCreateGroupDialog(false);
-
       setMembersChangeMeetingId(ev.detail.meetingId);
+      setMembersChangeMeetingKey(ev.detail.meetingKey);
+      setMembersChangeMeetingVersion(ev.detail.meetingVersion);
       setChannelName(ev.detail.channelName);
       setMembersChangeGroupName(ev.detail.meetingName || 'Chative Meeting');
       setMembersChangeType(ev.detail.type);

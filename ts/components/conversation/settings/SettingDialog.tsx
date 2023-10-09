@@ -138,7 +138,10 @@ export const SettingDialog = (props: Props) => {
     if (!isPrivate) {
       return;
     }
-
+    if ((window as any).isClickCommonGroup) {
+      setShowCommonGroups(true);
+      (window as any).isClickCommonGroup = false;
+    }
     const state = (window as any).inboxStore.getState();
     const { memberGroupLookup } = (state as StateType).conversations;
 

@@ -8,11 +8,15 @@ import { Tooltip } from 'antd';
 import ProfileModal from './ProfileModal';
 import { isEqual } from 'lodash';
 import { processImageFile } from '../../util/processImageFile';
+import { getConversationProps } from '../../shims/Whisper';
+import { StateType } from '../../state/reducer';
 
 export interface Props {
   i18n: LocalizerType;
   onClose: () => void;
   id: any;
+  //个人分享id
+  shareid?: string;
   x: number;
   y: number;
   avatarPath?: string;
@@ -51,6 +55,8 @@ interface ProfileItemProps {
   isRole?: boolean;
   isShowTip?: boolean;
   onClick?: (event: any) => void;
+  isShowArrowimg?: boolean;
+  onClickArrowimg?: (event: any) => void;
 }
 
 // const nameLengthMax = 30;
@@ -420,15 +426,61 @@ export class Profile extends React.Component<Props, State> {
     }
   };
 
+  public onClickCommonGroups = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // 关闭任务对话框
+    const ev = new Event('close-task-dialog');
+    window.dispatchEvent(ev);
+    const { userInfo } = this.state;
+    let conversationFrom = null;
+    if (this.props.shareid) {
+      conversationFrom = {
+        uid: userInfo?.id,
+        id: this.props.shareid,
+        type: 'shareContact',
+        isSend: true,
+      };
+    }
+
+    trigger(
+      'showConversation',
+      userInfo?.id,
+      null,
+      null,
+      null,
+      conversationFrom,
+      true
+    );
+    const myEvent = new Event('event-toggle-switch-chat');
+    window.dispatchEvent(myEvent);
+    this.props?.onClose();
+  };
   public openChat = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     // 关闭任务对话框
     const ev = new Event('close-task-dialog');
     window.dispatchEvent(ev);
-
     const { userInfo } = this.state;
-    trigger('showConversation', userInfo?.id);
+    let conversationFrom = null;
+    if (this.props.shareid) {
+      conversationFrom = {
+        uid: userInfo?.id,
+        id: this.props.shareid,
+        type: 'shareContact',
+        isSend: true,
+      };
+    }
+
+    trigger(
+      'showConversation',
+      userInfo?.id,
+      null,
+      null,
+      null,
+      conversationFrom
+    );
     const myEvent = new Event('event-toggle-switch-chat');
     window.dispatchEvent(myEvent);
     this.props?.onClose();
@@ -598,7 +650,6 @@ export class Profile extends React.Component<Props, State> {
     const { userInfo, userStatus } = this.state;
 
     let text = '';
-
     if (userInfo?.id) {
       switch (userStatus) {
         case 0:
@@ -937,11 +988,13 @@ export class Profile extends React.Component<Props, State> {
           key={item.field}
           isShowTip={!!item.isShowTip}
           isShowCopy={!!item.isShowCopy}
+          isShowArrowimg={!!item.isShowArrowimg}
           title={item?.title}
           content={content}
           onCopied={this.showCopiedTips}
           isRole={!!item.isRole}
           onClick={item.onClick}
+          onClickArrowimg={item.onClickArrowimg}
         />
       );
     }
@@ -955,23 +1008,79 @@ export class Profile extends React.Component<Props, State> {
     if (!userInfo) {
       return null;
     }
+    const state = (window as any).inboxStore.getState();
+    const { memberGroupLookup } = (state as StateType).conversations;
+    const groups = memberGroupLookup[userInfo.id];
 
-    const contactItems: Array<ProfileItemProps> = [
-      {
-        field: 'id',
-        title: i18n('profile_id'),
-        isShowCopy: true,
+    let commonGroups: any;
+    if (groups) {
+      commonGroups = groups
+        .map(id => getConversationProps(id))
+        .filter(props => props.isAliveGroup);
+    }
+    const commonGroupNumber = commonGroups ? commonGroups.length : 0;
+    userInfo.commonGroupNumber = commonGroupNumber.toString();
+
+    const contactItems: Array<ProfileItemProps> = [];
+    contactItems.push({
+      field: 'uid',
+      title: i18n('uid_name'),
+      isShowCopy: false,
+      isRole: false,
+      isShowTip: false,
+    });
+    contactItems.push({
+      field: 'joinedAt',
+      title: i18n('joined_at'),
+      isShowCopy: false,
+      isRole: false,
+      isShowTip: false,
+    });
+    if (!userInfo.isMe) {
+      contactItems.push({
+        field: 'met',
+        title: i18n('how_you_met'),
+        isShowCopy: false,
         isRole: false,
         isShowTip: false,
-      },
-      {
-        field: 'email',
-        title: i18n('profile_email'),
-        isShowCopy: true,
-        isRole: false,
-        isShowTip: false,
-      },
-    ];
+      });
+      if (userInfo.commonGroupNumber !== '0') {
+        contactItems.push({
+          field: 'commonGroupNumber',
+          title: i18n('common_groups'),
+          isShowCopy: false,
+          isRole: true,
+          isShowTip: true,
+          isShowArrowimg: true,
+          onClickArrowimg: this.onClickCommonGroups,
+        });
+      } else {
+        contactItems.push({
+          field: 'commonGroupNumber',
+          title: i18n('common_groups'),
+          isShowCopy: false,
+          isRole: false,
+          isShowTip: false,
+          isShowArrowimg: false,
+        });
+      }
+    } else {
+      // contactItems.push({
+      //   field: 'email',
+      //   title: i18n('profile_email'),
+      //   isShowCopy: true,
+      //   isRole: false,
+      //   isShowTip: false,
+      // });
+      // contactItems.push({
+      //   field: 'phoneNumber',
+      //   title: "phone",
+      //   isShowCopy: true,
+      //   isRole: false,
+      //   isShowTip: false,
+      // });
+    }
+
     // return (
     //   <div style={{ padding: '0px 0px', marginBottom: '16px' }}>
     //     <span
@@ -992,7 +1101,7 @@ export class Profile extends React.Component<Props, State> {
 
     return (
       <div style={{ padding: '0px 0px', marginBottom: '16px' }}>
-        <span
+        {/* <span
           className={'profile-item-title'}
           style={{
             float: 'left',
@@ -1001,7 +1110,7 @@ export class Profile extends React.Component<Props, State> {
           }}
         >
           {i18n('contact_info')}
-        </span>
+        </span> */}
 
         {contactItems.map(item => this.renderProfileItem(userInfo, item))}
       </div>
@@ -1159,8 +1268,8 @@ export class Profile extends React.Component<Props, State> {
   }
 
   public renderProfileInfo() {
-    const { userInfo } = this.state;
-    const isMe = userInfo?.isMe;
+    //const { userInfo } = this.state;
+    //const isMe = userInfo?.isMe;
     return (
       <div
         style={{ maxHeight: '394px', display: 'flex', flexDirection: 'column' }}
@@ -1169,7 +1278,8 @@ export class Profile extends React.Component<Props, State> {
         {this.renderMedals()}
         <div className={'div-scroll'}>
           {/* //判断不是自己的隐藏 */}
-          {isMe ? this.renderContactInfo() : null}
+          {/* {isMe ? this.renderContactInfo() : null} */}
+          {this.renderContactInfo()}
           {this.renderOrganizationInfo()}
         </div>
       </div>
@@ -1215,7 +1325,7 @@ export class Profile extends React.Component<Props, State> {
       isMarkDownCard,
     } = this.props;
 
-    const { userInfo, newName, isBot } = this.state;
+    const { userInfo, newName } = this.state;
     const isMe = userInfo?.isMe;
     const spookyBotFlag = userInfo?.spookyBotFlag;
 
@@ -1320,7 +1430,7 @@ export class Profile extends React.Component<Props, State> {
                 onClick={this.openChat}
               />
             </Tooltip>
-            {isMe || isBot ? null : (
+            {/* {isMe || isBot ? null : (
               <Tooltip
                 title={i18n('call')}
                 placement={'top'}
@@ -1333,7 +1443,7 @@ export class Profile extends React.Component<Props, State> {
                   onClick={this.openVoice}
                 />
               </Tooltip>
-            )}
+            )} */}
             <Tooltip
               title={i18n('forward')}
               placement={'top'}

@@ -149,6 +149,9 @@
         } else if (this.isRemindCycleUpdate()) {
           this.propsForRemindCycleNotification =
             this.getPropsForRemindCycleNotification();
+        } else if (this.isReminderNotifyUpdate()) {
+          this.propsForReminderNotification =
+            this.getPropsForReminderNotification();
         } else if (this.isGroupMemberRapidRoleUpdate()) {
           this.propsForGroupMemberRapidRoleNotification =
             this.getPropsForGroupMemberRapidRoleNotification();
@@ -368,6 +371,9 @@
     isRemindCycleUpdate() {
       return !!this.get('remindCycleUpdate');
     },
+    isReminderNotifyUpdate() {
+      return !!this.get('reminderNotifyUpdate');
+    },
     isGroupMemberRapidRoleUpdate() {
       return !!this.get('groupMemberRapidUpdate');
     },
@@ -570,15 +576,17 @@
         const feedback = groupUpdate.feedback;
         if (feedback) {
           if (feedback === '###') {
-            messages.push(
-              'Meeting ended. Please click here to share your feedback about the meeting.'
-            );
+            messages.push('Meeting ended.');
+            // messages.push(
+            //   'Meeting ended. Please click here to share your feedback about the meeting.'
+            // );
           } else {
-            messages.push(
-              'Meeting ended ' +
-                feedback +
-                '. Please click here to share your feedback about the meeting.'
-            );
+            messages.push('Meeting ended ' + feedback + '.');
+            // messages.push(
+            //   'Meeting ended ' +
+            //     feedback +
+            //     '. Please click here to share your feedback about the meeting.'
+            // );
           }
         }
 
@@ -734,6 +742,13 @@
         }
       }
 
+      if (this.isReminderNotifyUpdate()) {
+        const { description, creatorName, displayText } =
+          this.getPropsForReminderNotification();
+        // return `${i18n('reminderBy')} @${creatorName}: ${description}`;
+        return displayText;
+      }
+
       if (this.isGroupMemberRapidRoleUpdate()) {
         const { rapidRoleName, operatorName, updateMemberName } =
           this.getPropsForGroupMemberRapidRoleNotification();
@@ -843,7 +858,8 @@
           !this.isGroupUpdate() &&
           !this.isEndSession() &&
           !this.hasErrors() &&
-          !this.isTips()
+          !this.isTips() &&
+          !this.isReminderNotifyUpdate()
         ) {
           const conversation = this.getConversation();
           if (conversation && !conversation.isPrivate()) {
@@ -960,6 +976,11 @@
         type,
       };
     },
+
+    getPropsForReminderNotification() {
+      return this.get('reminderNotifyUpdate') || null;
+    },
+
     getPropsForGroupMemberRapidRoleNotification() {
       const { rapidRoleName, operatorName, updateMemberName } =
         this.get('groupMemberRapidUpdate') || {};
@@ -2982,6 +3003,10 @@
 
           const conversation = this.getConversation();
           if (conversation) {
+            //发送好友请求
+            if (conversation.isPrivate()) {
+              await conversation.sendFrindByMessage();
+            }
             if (
               conversation.isLargeGroup() &&
               conversation.isChatWithoutReceipt()

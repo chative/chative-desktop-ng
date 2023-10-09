@@ -350,6 +350,11 @@ function _promiseAjax(providedUrl, options) {
     if (options.contentType) {
       fetchOptions.headers['Content-Type'] = options.contentType;
     }
+    //配置head头Accept-Language alert(window.getLocalLanguage());
+    if (options.localLanguage) {
+      fetchOptions.headers['Accept-Language'] = options.localLanguage;
+    }
+
     fetch(url, fetchOptions)
       .then(response => {
         let resultPromise;
@@ -576,6 +581,7 @@ const URL_CALLS = {
   readPositions: 'v1/readReceipt',
   riskCheck: 'v1/content',
   conversationSharedConfig: 'v1/conversationconfig/share',
+  report: '/v3/accounts/report',
 };
 
 module.exports = {
@@ -721,13 +727,7 @@ function initialize({ certificateAuthority, proxyUrl }) {
       getRemoteConversations,
       getRemoteMessages,
       getRemoteReadPositions,
-      subscribeCaption,
-      unsubscribeCaption,
       getCaptionSubtitles,
-
-      // recording
-      startRecording,
-      stopRecording,
 
       meetingNotifyGroupLeave,
       meetingNotifyGroupInvite,
@@ -742,6 +742,10 @@ function initialize({ certificateAuthority, proxyUrl }) {
       //confident meeting
       getUserSessionsV2KeyByUid,
       getEncinfosByGroupId,
+      //举报，申请好友，接受好友
+      reportByUid,
+      agreeFriendByUid,
+      applyFriendByUid,
     };
 
     function _ajax(param) {
@@ -757,6 +761,7 @@ function initialize({ certificateAuthority, proxyUrl }) {
         data: param.jsonData && _jsonThing(param.jsonData),
         // host: url, // 因为域名自动选择，这个字段用不到了
         password,
+        localLanguage: param.localLanguage,
         path: URL_CALLS[param.call] + param.urlParameters,
         proxyUrl,
         responseType: param.responseType,
@@ -1041,6 +1046,7 @@ function initialize({ certificateAuthority, proxyUrl }) {
         validateResponse: { identityKey: 'string', devices: 'object' },
       }).then(extractKeysFromRes);
     }
+
     //获取群组所有用户信息包含meetingInfo
     function getEncinfosByGroupId(gid) {
       return _ajax({
@@ -1050,6 +1056,56 @@ function initialize({ certificateAuthority, proxyUrl }) {
         responseType: 'json',
         urlParameters: `/meetingencinfo/${gid}`,
       });
+    }
+    //举报
+    async function reportByUid(uid, type, reason, block) {
+      const path = 'v3/accounts/report';
+      const jsonData = {
+        uid: uid,
+        type: type,
+        reason: reason,
+      };
+      if (typeof block !== 'undefined') {
+        jsonData.block = block;
+      }
+
+      return requestFileServer(path, jsonData, {
+        domainUse: 'chat',
+        type: 'POST',
+        certificateAuthority,
+      });
+    }
+    //申请加好友
+    async function applyFriendByUid(uid, source = null, action = null) {
+      const path = 'v3/friend/ask';
+      const jsonData = {
+        uid: uid,
+        //source:source
+      };
+      if (source) {
+        jsonData.source = source;
+      }
+      if (action) {
+        jsonData.action = action;
+      }
+      return requestFileServer(path, jsonData, {
+        domainUse: 'chat',
+        type: 'POST',
+        certificateAuthority,
+      });
+    }
+    //同意加好友
+    async function agreeFriendByUid(uid) {
+      const path = 'v3/friend/ask/' + uid + '/agree';
+      return requestFileServer(
+        path,
+        {},
+        {
+          domainUse: 'chat',
+          type: 'PUT',
+          certificateAuthority,
+        }
+      );
     }
 
     //获取某个用户的公钥以及meetingVersion
@@ -1246,6 +1302,7 @@ function initialize({ certificateAuthority, proxyUrl }) {
         httpType: 'POST',
         responseType: 'json',
         jsonData,
+        localLanguage: window.getLocalLanguage(),
       });
     }
 
@@ -2469,6 +2526,7 @@ function initialize({ certificateAuthority, proxyUrl }) {
         jsonData,
       });
     }
+
     function getCaptionSubtitles(channelName, meetingId, lang) {
       const path = `api/v1/caption/subtitles?channelName=${channelName}&meetingId=${meetingId}&lang=${lang}`;
       console.log('getCaptionSubtitles', path);
@@ -2600,7 +2658,6 @@ function initialize({ certificateAuthority, proxyUrl }) {
 
     function getConversationConfig(idOrIds) {
       const jsonData = {};
-
       let ids = [];
       if (typeof idOrIds === 'object') {
         ids = [idOrIds];
@@ -2626,7 +2683,6 @@ function initialize({ certificateAuthority, proxyUrl }) {
 
         Object.assign(jsonData, { conversations });
       }
-
       return _ajax({
         call: 'conversation',
         newAPI: true,
@@ -2634,6 +2690,7 @@ function initialize({ certificateAuthority, proxyUrl }) {
         responseType: 'json',
         jsonData,
         urlParameters: `/get`,
+        localLanguage: window.getLocalLanguage(),
       });
     }
 

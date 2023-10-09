@@ -27,7 +27,6 @@
     if (!numberId || !numberId.length) {
       return numberId;
     }
-
     const parts = numberId.split('.');
     if (!parts.length) {
       return numberId;

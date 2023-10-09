@@ -3,7 +3,7 @@
   "productName": "Chative",
   "description": "Chative Desktop",
   "repository": "https://github.com/chative/chative-desktop.git",
-  "version": "2.7.23072101",
+  "version": "2.7.23092601",
   "license": "GPL-3.0",
   "author": {
     "name": "Difft Developer Team",
@@ -14,9 +14,9 @@
     "postinstall": "patch-package && electron-builder install-app-deps && rimraf node_modules/dtrace-provider",
     "proxy_start": "cross-env https_proxy=http://127.0.0.1:8888 electron .",
     "start": "electron .",
+    "dev": "electron . & grunt watch",
     "start-with-remote-debugging": "electron . --remote-debugging-port=9222",
     "grunt": "grunt",
-    "ob": "node obfuscate.js",
     "generate": "yarn grunt",
     "generate-ci": "yarn grunt ci",
     "build": "electron-builder --config.extraMetadata.environment=$SIGNAL_ENV",
@@ -62,6 +62,7 @@
     "blob-util": "2.0.2",
     "blueimp-canvas-to-blob": "3.14.0",
     "blueimp-load-image": "5.16.0",
+    "bs58": "5.0.0",
     "buffer-readable": "^1.0.2",
     "bunyan": "1.8.15",
     "chokidar": "3.5.3",
@@ -104,7 +105,7 @@
     "os-locale": "5.0.0",
     "p-queue": "6.6.2",
     "pify": "3.0.0",
-    "protobufjs": "6.10.3",
+    "protobufjs": "6.11.4",
     "proxy-agent": "5.0.0",
     "rc-progress": "^3.2.4",
     "react": "17.0.2",
@@ -117,7 +118,6 @@
     "redux": "4.1.2",
     "redux-logger": "3.0.6",
     "redux-promise-middleware": "6.1.0",
-    "request": "2.88.2",
     "reselect": "4.0.0",
     "rimraf": "2.6.2",
     "semver": "5.7.2",
@@ -167,8 +167,8 @@
     "bower": "1.8.8",
     "chai": "4.1.2",
     "cross-env": "7.0.3",
-    "electron": "22.0.3",
-    "electron-builder": "23.6.0",
+    "electron": "22.3.24",
+    "electron-builder": "24.6.4",
     "electron-notarize": "1.1.1",
     "eslint": "8.27.0",
     "eslint-config-prettier": "8.3.0",
@@ -200,6 +200,9 @@
     "typescript": "4.4.2",
     "webpack": "5.76.0",
     "webpack-cli": "4.10.0"
+  },
+  "resolutions": {
+    "**/getobject": "1.1.1"
   },
   "engines": {
     "node": "16.17.1"

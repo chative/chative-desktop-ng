@@ -75,6 +75,10 @@
         androidFinalStep: i18n('plusButton'),
         appleFinalStep: i18n('linkNewDevice'),
 
+        linkDeviceStep1: i18n('linkDeviceStep1'),
+        linkDeviceStep2: i18n('linkDeviceStep2'),
+        linkDeviceStep3: i18n('linkDeviceStep3'),
+
         isStep4: this.step === Steps.ENTER_NAME,
         chooseName: i18n('chooseDeviceName'),
         finishLinkingPhoneButton: i18n('finishLinkingPhone'),

@@ -15,6 +15,7 @@ const chokidar = require('chokidar');
 const { deferredToPromise } = require('./js/modules/deferred_to_promise');
 const { isFileRegular } = require('./ts/util/isFileRegular');
 const MIME = require('./ts/types/MIME');
+const bs58 = require('bs58');
 
 if (process.platform === 'linux') {
   // for linux
@@ -29,6 +30,11 @@ if (process.platform === 'linux') {
 
 const { app, getCurrentWindow, dialog } = require('@electron/remote');
 window.getLocalLanguage = () => app.getLocale();
+window.base58_encode = str => {
+  let bytes = Buffer.from(str);
+  let address = bs58.encode(bytes);
+  return address;
+};
 // electron.webFrame.setZoomFactor(1);
 
 const {
@@ -274,6 +280,9 @@ ipc.on('prepare-join-meeting', (_, info) => {
   window.dispatchBeforeJoinMeeting(info);
 });
 
+ipc.on('meeting-version-low-warning', () => {
+  window.alert(window.i18n('meetingVersionLowWarning'));
+});
 ipc.on('unlink-current-device', async () => {
   try {
     const result = await window.getAccountManager().unlinkCurrentDevice();
@@ -1033,9 +1042,16 @@ ipc.on('create-or-edit-group', (e, fromWinId, editInfo) => {
 
 ipc.on(
   'open-add-meeting-members',
-  (_, { channelName, meetingName, meetingId }) => {
+  (_, { channelName, meetingName, meetingId, meetingKey, meetingVersion }) => {
     const ev = new CustomEvent('global-components-members-change', {
-      detail: { type: 'meeting-add', channelName, meetingName, meetingId },
+      detail: {
+        type: 'meeting-add',
+        channelName,
+        meetingName,
+        meetingId,
+        meetingKey,
+        meetingVersion,
+      },
     });
     window.dispatchEvent(ev);
   }
@@ -1045,8 +1061,23 @@ window.instantMeeting = (members, meetingName) => {
   ipc.send('instant-meeting', members, meetingName);
 };
 
-window.addMeetingMembers = (members, channelName, meetingName, meetingId) => {
-  ipc.send('add-meeting-members', members, channelName, meetingName, meetingId);
+window.addMeetingMembers = (
+  members,
+  channelName,
+  meetingName,
+  meetingId,
+  meetingKey,
+  meetingVersion
+) => {
+  ipc.send(
+    'add-meeting-members',
+    members,
+    channelName,
+    meetingName,
+    meetingId,
+    meetingKey,
+    meetingVersion
+  );
 };
 
 window.focusMeetingDialog = () => {
@@ -1187,8 +1218,16 @@ window.getDisableHardwareAcceleration = makeSettingGetter(
 );
 window.setDisableHardwareAcceleration = v => {
   makeSettingSetter('disable-hardware-acceleration')(v);
-  alert('Relaunch Chative to take effect.');
 };
+window.getOriginalDisableHardwareAcceleration = makeSettingGetter(
+  'original-disable-hardware-acceleration'
+);
+
+window.setLanguage = v => {
+  makeSettingSetter('user-language')(v);
+};
+window.getLanguage = makeSettingGetter('language');
+window.getOriginalLanguage = makeSettingGetter('original-language');
 
 function makeSettingGetter(name) {
   return () =>

@@ -286,6 +286,15 @@
 .sub-setting-content {
   top: 136px;
   margin: 24px 16px 0px 16px;
+
+  .language-setting-content {
+    .ant-radio-inner {
+      border-color: #5e6673;
+    }
+    .ant-radio-checked .ant-radio-inner {
+      border-color: #1890ff !important;
+    }
+  }
 }
 
 .setting-item-content {
@@ -413,7 +422,7 @@
 }
 
 .setting-select-squar-checkbox {
-  top: 10px;
+  top: 6px;
   left: 2px;
   bottom: 0px;
   // margin: auto;

@@ -22,6 +22,9 @@ body.dark-theme {
 
 .dark-theme {
   // _conversation
+  .ant-btn-dangerous {
+    background: #070c14;
+  }
 
   .conversation {
     background-color: $app-color-background-1-dark;
@@ -41,7 +44,12 @@ body.dark-theme {
     border: solid 1px #474d57;
   }
   .discussion-container {
-    background-color: $app-color-background-1-dark;
+    //background-color: $app-color-background-1-dark;
+    //background-color: red;
+    background-image: url('../images/message_bg3.png');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
 
     .at-person-choose-wrapper {
       .at-person-choose {
@@ -671,7 +679,7 @@ body.dark-theme {
   // _index
 
   .first-column {
-    background-color: #000000;
+    background-color: #474d57;
   }
 
   .contact-column {
@@ -2259,13 +2267,20 @@ body.dark-theme {
     }
 
     .ant-modal-body {
-      background-color: #0f1012;
-
+      background-color: var(--app-color-background-1-dark);
+      color: #ddd;
       ::-webkit-calendar-picker-indicator {
         margin-right: -0.35em; // @note Harmonisation avec les icônes remplacées.
         filter: invert(48%) sepia(30%) saturate(0%) hue-rotate(203deg)
           brightness(90%) contrast(95%); // @note Harmonisation avec les icônes remplacées @see https://stackoverflow.com/a/43960991/4960244
         cursor: pointer;
+      }
+
+      .ant-modal-confirm-title {
+        color: var(--app-color-text-primary-dark);
+      }
+      .ant-modal-confirm-content {
+        color: var(--app-color-text-primary-dark);
       }
     }
 
@@ -2728,12 +2743,12 @@ body.dark-theme {
       color: #b7bdc6;
     }
     .profile-item-title {
-      color: #eaecef;
+      color: #b7bdc6;
     }
     .profile-item {
       .profile-item-sub {
         //color: $color-gray-05;
-        color: #b7bdc6;
+        color: #eaecef;
       }
     }
     .profile-name {
@@ -4152,9 +4167,9 @@ body.dark-theme {
   .global-group-rapid-6 {
     @include group-rapid-tag-item('../images/rapid-6-dark.svg');
   }
-  .global-tag-external {
-    background: url(../images/tag-external-dark.svg) center no-repeat;
-  }
+  // .global-tag-external {
+  //   background: url(../images/tag-external-dark.svg) center no-repeat;
+  // }
 
   .module-avatar-group-members-count {
     // color: #4da0ff;
@@ -4702,5 +4717,17 @@ body.dark-theme {
 
   .dragable {
     background-color: #181a20;
+  }
+
+  .sub-setting-content {
+    .language-setting-content {
+      .ant-radio-wrapper {
+        color: #eaecef;
+
+        .ant-radio-inner {
+          background-color: #181a20;
+        }
+      }
+    }
   }
 }

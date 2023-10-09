@@ -20,6 +20,7 @@ const { locale } = config;
 const localeMessages = ipcRenderer.sendSync('locale-data');
 window.filesize = require('filesize');
 window._lodash = require('lodash');
+const bs58 = require('bs58');
 
 window.theme = config.theme;
 window.i18n = i18n.setup(locale, localeMessages);
@@ -34,6 +35,11 @@ window.React = require('react');
 window.ReactDOM = require('react-dom');
 window.moment = require('moment');
 
+window.base58_encode = str => {
+  let bytes = Buffer.from(str);
+  let address = bs58.encode(bytes);
+  return address;
+};
 require('./js/logging');
 const Signal = require('./js/modules/signal');
 

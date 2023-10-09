@@ -213,7 +213,10 @@
 
   &.dark-theme {
     // _modules
-
+    .discussion-container {
+      //background-color: red;
+      background-image: url('../images/sending.svg') center no-repeat;
+    }
     .module-message__container--outgoing {
       background-color: $app-color-background-blue-dark;
       color: $app-color-text-primary-dark;

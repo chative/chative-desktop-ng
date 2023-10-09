@@ -964,14 +964,37 @@ window.setupWaterMark = () => {
     window.addEventListener('unload', () => Whisper.Notifications.fastClear());
 
     let lastOpenedId;
+    //记录会话来源
+    window.conversationFrom;
+    //是否是点击名片群统计过来的
+    window.isClickCommonGroup = false;
     Whisper.events.on(
       'showConversation',
-      (id, messageId, recentConversationSwitch, type) => {
+      (
+        id,
+        messageId,
+        recentConversationSwitch,
+        type,
+        conversationFrom = null,
+        isClickCommonGroup = null
+      ) => {
         if (lastOpenedId && lastOpenedId != id) {
           const conversation = ConversationController.get(lastOpenedId);
+          window.conversationFrom = {
+            id: conversation.id,
+            type: 'fromGroup',
+            isSend: !conversation.isPrivate(),
+          };
           if (conversation) {
             conversation.clearReadConfidentialMessages();
           }
+        }
+        //追加会话来源
+        if (conversationFrom) {
+          window.conversationFrom = conversationFrom;
+        }
+        if (isClickCommonGroup) {
+          window.isClickCommonGroup = isClickCommonGroup;
         }
 
         // update
@@ -1803,6 +1826,7 @@ window.setupWaterMark = () => {
 
       try {
         const result = await textsecure.messaging.getConversationConfig();
+
         const { conversations: configArray } = result?.data || {};
         if (configArray?.length) {
           await ConversationController.updateConversationConfigs(configArray);
@@ -3385,10 +3409,39 @@ window.setupWaterMark = () => {
         return queueConversationShareChangeHandler(notifyTime, data, display);
       case 6:
         return queueFriendshipChangeHandler(notifyTime, data);
+      case 8:
+        return queueReminderChangeHandler(notifyTime, data);
       default:
         log.warn('unknown notify type,', notifyType);
         return;
     }
+  }
+
+  function queueReminderChangeHandler(notifyTime, data) {
+    // type: group | private
+    // conversation: uid | gid
+    const { type, conversation: cid } = data || {};
+    if (type !== 'private' && type !== 'group') {
+      log.info('Reminder notify unknown type:', type);
+      return;
+    }
+
+    const id = type === 'group' ? window.Signal.ID.convertIdToV1(cid) : cid;
+    return ConversationController.getOrCreateAndWait(id, type).then(
+      conversation => {
+        conversation.queueJob(() =>
+          handleReminderChange(
+            notifyTime,
+            {
+              ...data,
+              idV1: cid,
+              idV2: id,
+            },
+            conversation
+          )
+        );
+      }
+    );
   }
 
   function queueGroupChangeHandler(notifyTime, data, display) {
@@ -4682,6 +4735,7 @@ window.setupWaterMark = () => {
     let updated;
 
     const lastSettingVersion = conversation.get('settingVersion') || 0;
+    //settingVersion 相等时也要更新一下
     if (settingVersion <= lastSettingVersion) {
       log.warn(
         `[${id} ${notifyTime}]`,
@@ -5043,6 +5097,124 @@ window.setupWaterMark = () => {
       'private'
     ).then(conversation => {
       handleSharedConfigChangeNotification(conversation, notifyTime, data);
+    });
+  }
+
+  // notifyType: 8
+  async function handleReminderChange(notifyTime, data, conversation) {
+    const {
+      conversation: cid,
+      version,
+      timestamp,
+      changeType,
+      idV1,
+      idV2,
+      description,
+      creator,
+      reminderId,
+    } = data || {};
+    log.info(
+      '[',
+      cid,
+      notifyTime,
+      '] handle begin for reminder notification:',
+      timestamp
+    );
+    const expireTimer = conversation.getConversationMessageExpiry();
+
+    let reminderList = conversation.get('reminderList') || [];
+    const reminder =
+      reminderList?.find(r => r?.reminderId === reminderId) || data;
+
+    // changeType: 1-新增, 2-修改, 3-删除, 4-提醒
+    if (version < reminder?.version) {
+      log.warn(
+        '[',
+        cid,
+        notifyTime,
+        '] skipping, local:',
+        reminder?.version,
+        'coming:',
+        version
+      );
+      return;
+    }
+
+    // changeType: 1-新增, 2-修改, 3-删除, 4-提醒
+    switch (changeType) {
+      case 1:
+      case 2:
+        reminderList = reminderList.filter(r => r?.reminderId !== reminderId);
+        reminderList.push(data);
+        break;
+      case 3:
+        reminderList = reminderList.filter(r => r?.reminderId !== reminderId);
+        break;
+      default:
+        console.log('update reminder list and then continue...');
+    }
+
+    let updateAttribute = {
+      reminderList,
+    };
+
+    let messageAttribute = {
+      sent_at: notifyTime,
+      serverTimestamp: notifyTime,
+    };
+
+    let creatorName;
+    const c = ConversationController.get(creator);
+    if (c) {
+      creatorName = c.getName();
+    }
+    let displayText = '';
+    if (changeType === 1) {
+      displayText = `@${creatorName} ${i18n('createdReminder')}`;
+    } else if (changeType === 2) {
+      displayText = `@${creatorName} ${i18n('changedReminder')}`;
+    } else if (changeType === 3) {
+      displayText = `@${creatorName} ${i18n('deletedReminder')}`;
+    } else if (changeType === 4) {
+      displayText = `${i18n('reminderBy')} @${creatorName}: ${description}`;
+
+      updateAttribute = {
+        ...updateAttribute,
+        unreadCount: conversation.get('unreadCount') + 1,
+        active_at: Date.now(),
+      };
+
+      messageAttribute = {
+        ...messageAttribute,
+        type: 'incoming',
+      };
+    } else {
+      log.warn('[', cid, notifyTime, ']', 'unknown changeType');
+      return;
+    }
+
+    const message = await conversation.saveNewLocalMessage({
+      ...messageAttribute,
+      source: window.textsecure.storage.user.getNumber(),
+      reminderNotifyUpdate: {
+        description,
+        creatorName,
+        displayText,
+      },
+      expireTimer,
+    });
+
+    //  4-通知 需要提醒
+    if (changeType === 4) {
+      await conversation.notify(message);
+    }
+
+    conversation.set({
+      ...updateAttribute,
+    });
+
+    await window.Signal.Data.updateConversation(idV1, conversation.attributes, {
+      Conversation: Whisper.Conversation,
     });
   }
 })();

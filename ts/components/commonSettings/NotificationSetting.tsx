@@ -24,10 +24,16 @@ const SettingNames = {
 
 const mainWindow = window as any;
 
-const getInitialData = async () => ({
-  notificationSetting: await mainWindow.getNotificationSetting(),
-  audioSetting: await mainWindow.getAudioNotification(),
-});
+const getInitialData = async () => {
+  let audioSetting = await mainWindow.getAudioNotification();
+  if (typeof audioSetting == 'undefined') {
+    audioSetting = true;
+  }
+  return {
+    notificationSetting: await mainWindow.getNotificationSetting(),
+    audioSetting: audioSetting,
+  };
+};
 
 export class NotificationSetting extends Component<
   NotificationProps,

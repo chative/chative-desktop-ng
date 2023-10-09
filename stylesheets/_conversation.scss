@@ -510,6 +510,21 @@
 .send-message-top-bar-active {
   border-top: 1px solid $color-signal-blue !important;
 }
+.friend-request-option_content {
+  width: 100%;
+  min-height: 79px;
+  border-top: 1px solid #d5d6d6;
+  text-align: center;
+  button {
+    margin: 10px 5px;
+  }
+  .the_from {
+    width: 100%;
+    text-align: center;
+    padding-top: 5px;
+    min-height: 22px;
+  }
+}
 
 .send-message-top-bar {
   font-size: 0;
@@ -1199,7 +1214,7 @@
     font-weight: 400;
     font-size: 14px;
     line-height: 20px;
-    color: #1e2329;
+    color: #474d57;
   }
 
   .profile-item {
@@ -1225,7 +1240,7 @@
       //margin-bottom: 5px;
       word-break: break-all;
       //color: $color-light-90;
-      color: #707a8a;
+      color: #1e2329;
       .ant-tooltip-open {
         white-space: nowrap;
         text-overflow: ellipsis;

@@ -95,6 +95,10 @@ const {
   ConfidentialModeButton,
 } = require('../../ts/components/conversation/ConfidentialModeButton');
 
+const {
+  FriendRequestOption,
+} = require('../../ts/components/conversation/FriendRequestOption');
+
 const { TaskDialog } = require('../../ts/components/task/TaskDialog');
 
 const { PollDialog } = require('../../ts/components/poll/PollDialog');
@@ -116,6 +120,10 @@ const {
 const {
   RemindCycleNotification,
 } = require('../../ts/components/conversation/RemindCycleNotification');
+
+const {
+  ReminderNotification,
+} = require('../../ts/components/conversation/ReminderNotification');
 
 const {
   GroupMemberRapidRoleNotification,
@@ -374,10 +382,12 @@ exports.setup = (options = {}) => {
     RecallMessageNotification,
     MessageExpiryNotification,
     RemindCycleNotification,
+    ReminderNotification,
     GroupMemberRapidRoleNotification,
     TipsForArchiveIndicator,
     TranslateMenu,
     ConfidentialModeButton,
+    FriendRequestOption,
     TaskDialog,
     PollDialog,
     TopicListDialog,

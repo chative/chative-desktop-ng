@@ -1,6 +1,7 @@
 /* global Whisper: false */
 
 // eslint-disable-next-line func-names
+
 (function () {
   'use strict';
 
@@ -159,6 +160,11 @@
         return {
           Component: Components.RemindCycleNotification,
           props: this.model.propsForRemindCycleNotification,
+        };
+      } else if (this.model.propsForReminderNotification) {
+        return {
+          Component: Components.ReminderNotification,
+          props: this.model.propsForReminderNotification,
         };
       } else if (this.model.propsForGroupMemberRapidRoleNotification) {
         return {

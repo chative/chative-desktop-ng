@@ -177,7 +177,9 @@
       <div class='bottom-bar' id='footer'>
           <div class='select-action-bar-container'></div>
           <div class='attachment-list'></div>
+
           <div class='compose'>
+            <div class="friend-request-option"></div>
             <div class='send-message-top-bar file-input'>
 <!--              <div class='switch-markdown'>-->
 <!--               <button class='markdown'></button>-->
@@ -552,9 +554,12 @@
                 <span class='os-icon apple'></span>
               </div>
               <div class='body'>
-                <div>→ {{ signalSettings }}</div>
-                <div>→ {{ linkedDevices }}</div>
-                <div>→ {{ appleFinalStep }}</div>
+<!--                <div>→ {{ signalSettings }}</div>-->
+<!--                <div>→ {{ linkedDevices }}</div>-->
+<!--                <div>→ {{ appleFinalStep }}</div>-->
+                <div>→ {{ linkDeviceStep1 }}</div>
+                <div>→ {{ linkDeviceStep2 }}</div>
+                <div>→ {{ linkDeviceStep3 }}</div>
               </div>
             </div>
           <!-- </div> -->
@@ -648,6 +653,7 @@
   </script>
 
   <script type='text/javascript' src='js/components.js'></script>
+
   <script type='text/javascript' src='js/reliable_trigger.js'></script>
   <script type='text/javascript' src='js/database.js'></script>
   <script type='text/javascript' src='js/storage.js'></script>
@@ -655,6 +661,9 @@
   <script type='text/javascript' src='js/signal_protocol_store.js'></script>
   <script type='text/javascript' src='js/libtextsecure.js'></script>
 
+  <script type='text/javascript' src='js/play_sound.js' charset="utf-8"></script>
+  <script type='text/javascript' src='js/mouse_keyboard_listener.js'></script>
+ 
   <script type='text/javascript' src='js/focus_listener.js'></script>
   <script type='text/javascript' src='js/notifications.js'></script>
   <script type='text/javascript' src='js/delivery_receipts.js'></script>
