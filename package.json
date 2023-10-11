@@ -167,7 +167,7 @@
     "bower": "1.8.8",
     "chai": "4.1.2",
     "cross-env": "7.0.3",
-    "electron": "22.3.24",
+    "electron": "22.3.25",
     "electron-builder": "24.6.4",
     "electron-notarize": "1.1.1",
     "eslint": "8.27.0",
