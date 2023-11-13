@@ -1,0 +1,118 @@
+.poll-message-block {
+  width: 280px;
+  border: 1px solid $app-color-line-light;
+  border-radius: 8px;
+  margin-top: 5px;
+  //padding: 5px 10px;
+  background-color: white;
+  padding-bottom: 10px;
+
+  button {
+    font-size: 13px;
+    padding: 0 15px;
+    border-radius: 4px;
+    border: 1px solid $app-color-line-light;
+    margin: 10px 0 2px 0;
+    height: 32px;
+    background-color: white;
+    outline: none;
+    width: calc(100% - 30px);
+
+    &:hover {
+      background-color: $app-color-background-2-light;
+    }
+  }
+
+  // .button-no-hover {
+  //   &:hover {
+  //     background-color: white;
+  //   }
+  // }
+
+  // .button-enable {
+  //   cursor: pointer;
+  // }
+
+  .button-disable {
+    cursor: not-allowed;
+    color: $app-color-text-disable-light;
+  }
+
+  .poll-header {
+    border-radius: 5px 5px 0 0;
+    padding: 10px;
+    border-bottom: 1px solid $app-color-line-light;
+    color: $app-color-text-secondary-light;
+    // background-color: #f0f0fd;
+    //height: 58px;
+    position: relative;
+
+    .name {
+      font-size: 15px;
+      margin-left: 22px;
+      //overflow: hidden;
+      //text-overflow: ellipsis;
+      //white-space: nowrap;
+      display: inline-block;
+      //width: calc(100% - 22px);
+      //line-height: 22px;
+      word-break: break-word;
+      line-height: 18px;
+    }
+
+    .sub-name {
+      margin: 0 0 0 22px;
+      font-size: 12px;
+      line-height: 14px;
+    }
+  }
+
+  .poll-icon {
+    @include color-svg('../images/poll.svg', $app-color-text-secondary-light);
+    height: 16px;
+    width: 16px;
+    vertical-align: top;
+    display: inline-block;
+    position: absolute;
+    top: 14px;
+  }
+
+  .options-container {
+    padding: 10px 10px 0 10px;
+
+    .option-item {
+      cursor: pointer;
+      padding: 8px 0;
+      input {
+        vertical-align: middle;
+        pointer-events: none;
+        height: 14px;
+        width: 14px;
+        margin: 3px;
+        position: absolute;
+      }
+      label {
+        vertical-align: middle;
+        pointer-events: none;
+        cursor: pointer;
+        margin-left: 24px;
+        word-break: break-word;
+        line-height: 20px;
+      }
+    }
+  }
+
+  .self-voted-name {
+    color: rgb(50, 113, 255);
+  }
+
+  .vote-status-container {
+    margin: 14px 0 0 0;
+    .vote-status {
+      font-size: 11px;
+      margin: 4px 0 0 10px;
+      //display: block;
+      line-height: 18px;
+    }
+  }
+}

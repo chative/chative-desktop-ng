@@ -1,0 +1,119 @@
+.floating-bar-body {
+  user-select: none;
+  font-size: 13px;
+  height: 100%;
+
+  .header {
+    display: flex;
+    background-color: rgb(245, 246, 247);
+    -webkit-app-region: drag;
+    height: 40px;
+    padding-left: 8px;
+
+    .title {
+      color: #666666;
+      line-height: 40px;
+      margin-right: 8px;
+    }
+
+    .content {
+      white-space: nowrap;
+      display: inline-block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 40px;
+      margin-left: 24px;
+    }
+
+    .speaking-icon {
+      height: 20px;
+      width: 20px;
+      padding: 2px;
+      left: 10px;
+      top: 10px;
+      position: absolute;
+      &:before {
+        content: '';
+        display: inline-block;
+        height: 16px;
+        width: 16px;
+        @include color-svg(
+          '../images/mic-speaking.gif',
+          $app-color-text-success-dark
+        );
+      }
+    }
+
+    .share-screen-icon {
+      height: 20px;
+      width: 20px;
+      padding: 2px;
+      left: 10px;
+      top: 11px;
+      position: absolute;
+      &:before {
+        content: '';
+        display: inline-block;
+        height: 16px;
+        width: 16px;
+        @include color-svg('../images/sc-on.svg', $app-color-icon-dark);
+      }
+    }
+  }
+
+  .button-list {
+    padding: 8px;
+    display: flex;
+    justify-content: space-evenly;
+
+    .mic-muted {
+      height: 44px;
+      width: 44px;
+      padding: 0;
+      border: none;
+      outline: none;
+      margin: 0 5px;
+      border-radius: 100%;
+      background: url('../images/microphone-enable2.svg') no-repeat center;
+      cursor: pointer;
+
+      &:hover {
+        background: url('../images/microphone-enable2-hover.svg') no-repeat
+          center;
+      }
+    }
+
+    .mic-normal {
+      height: 44px;
+      width: 44px;
+      padding: 0;
+      border: none;
+      outline: none;
+      margin: 0 5px;
+      border-radius: 100%;
+      background: url('../images/microphone-disable2.svg') no-repeat center;
+      cursor: pointer;
+
+      &:hover {
+        background: url('../images/microphone-disable2-hover.svg') no-repeat
+          center;
+      }
+    }
+
+    .window-close {
+      height: 44px;
+      width: 44px;
+      padding: 0;
+      border: none;
+      outline: none;
+      margin: 0 5px;
+      border-radius: 100px;
+      background: url('../images/off.svg') no-repeat center;
+      cursor: pointer;
+
+      &:hover {
+        background: url('../images/off-hover.svg') no-repeat center;
+      }
+    }
+  }
+}

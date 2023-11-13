@@ -1,0 +1,90 @@
+<html>
+<head>
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'none';
+            child-src 'self';
+            connect-src 'self' https: wss:;
+            font-src 'self';
+            form-action 'self';
+            frame-src 'none';
+            img-src 'self' blob: data:;
+            media-src 'self' blob:;
+            object-src 'none';
+            script-src 'self';
+            style-src 'self' 'unsafe-inline';"
+  />
+  <style>
+    body {
+      text-align: center;
+      background-color: rgb(246, 246, 246);
+      color: rgb(88, 88, 88);
+      font-size: 14px;
+      /*-webkit-app-region: drag;*/
+      user-select: none;
+    }
+
+    .drag-title {
+      -webkit-app-region: drag;
+    }
+
+    .image-container {
+      height: calc(100% - 60px);
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: fixed;
+      top: 60px;
+    }
+
+    .image-container > div {
+      overflow: visible;
+    }
+
+    .nav-button {
+      border: none;
+      color: white;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .previous-button {
+      background-color: rgb(24, 182, 255);
+    }
+
+    .next-button {
+      background-color: rgb(223, 116, 125);
+    }
+
+    .editor-icon {
+      cursor: pointer;
+      border: none;
+      outline: none;
+      background-color: rgba(0, 0, 0, 0);
+    }
+
+    .editor-icon:active {
+      opacity: 0.5;
+    }
+    .editor-icon:disabled {
+      cursor: not-allowed;
+      opacity: 0.4;
+    }
+  </style>
+  <link href="../stylesheets/manifest.css" rel="stylesheet" type="text/css"/>
+  <title>Images view</title>
+</head>
+<body></body>
+
+<script type="text/javascript" src="../js/components.js"></script>
+<script
+  type="text/javascript"
+  src="../js/views/react_wrapper_view.js"
+></script>
+<script type="text/javascript" src="./image_gallery_view.js"></script>
+</html>

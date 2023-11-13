@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none';
+            child-src 'self';
+            connect-src 'self' https: wss:;
+            font-src 'self';
+            form-action 'self';
+            frame-src 'none';
+            img-src 'self' blob: data:;
+            media-src 'self' blob:;
+            object-src 'none';
+            script-src 'self' 'unsafe-inline';
+            style-src 'self' 'unsafe-inline';"
+  >
+  <link href="../../../stylesheets/manifest.css" rel="stylesheet" type="text/css"/>
+  <title>App</title>
+  <style>
+    html {
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <div class="webview_navigate">
+    <div id="app_title" class="title">Apps</div>
+    <div class="right_control">
+      <button class="close" onclick="window.GLOBAL_API.navigateControl('close')"></button>
+    </div>
+  </div>
+  <div class="loading_box">
+    <span class="loading_span">
+      <i></i><i></i><i></i><i></i>
+    </span>
+  </div>
+</body>
+<script type='text/javascript' src='../webview_event.js'></script>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none';
+            child-src 'self';
+            connect-src 'self' https: wss:;
+            font-src 'self';
+            form-action 'self';
+            frame-src 'none';
+            img-src 'self' blob: data:;
+            media-src 'self' blob:;
+            object-src 'none';
+            script-src 'self' 'unsafe-inline';
+            style-src 'self' 'unsafe-inline';"
+  >
+  <link href="../../../stylesheets/manifest.css" rel="stylesheet" type="text/css"/>
+  <style>
+    body {
+      background-color: rgba(0, 0, 0, 0)!important;
+    }
+  </style>
+  <title>Title</title>
+</head>
+<body>
+  <div class="tab_menu_box">
+    <div class="menu_item" onclick="copyLink()">Copy URL</div>
+    <div class="menu_item" onclick="sharePage()">Share Page</div>
+    <div class="menu_item" onclick="openInBrowser()">Open in Browser</div>
+  </div>
+</body>
+</html>
+<script>
+  const params = (new URL(document.location)).searchParams;
+  const tabId = params.get('tabId');
+  function copyLink() {
+    window.GLOBAL_API.tabMenuAction({ action: 'copyLink', tabId});
+  }
+  function sharePage(){
+    window.GLOBAL_API.tabMenuAction({ action: 'sharePage', tabId});
+  }
+  function openInBrowser(){
+    window.GLOBAL_API.tabMenuAction({ action: 'openInBrowser', tabId});
+  }
+</script>
+<script type='text/javascript' src='../independent_event.js'></script>
